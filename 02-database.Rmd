@@ -1,0 +1,797 @@
+# Gene Set Databases
+
+## Overview
+
+Gene set enrichment analysis evaluates the associations of a gene list of interest to a collection of pre-defined gene sets,
+where each gene set represents a specific biological attribute. Once the gene list is statistically significantly enriched in a gene set,
+the cocludsion is made that the corresponding biological function is significantly affected. Thus choose
+a proper type of gene sets is important to the studies. The construction of gene sets a very flexible. In most
+cases, they are from public databases where xx efforts have already been to categorize genes into sets. Nevertheless, 
+the gene sets can also be self-defineds from personal studies, such as a set of genes in a network module, or xxx. In this chapter,
+we will introduce several major gene set databases and how to access the data in R.
+
+## Gene Ontology
+
+Gene Ontology (GO) is perhaps the most used gene sets database in current studies. The GO project was started in 1999. It aims
+to construct biological functions in a well-organized form, which is both effcient for human-readable and machine-readable. It also
+provides annotations between well-defined biological terms to multiple species, which gives a comprehensive knowledge for functional
+studies.
+
+GO has three namespaces, which are 1. Biological process, 2. cellular componet and 3. molecular function, which describe a gene or its product
+protein from the three aspects. biological process describes what a gene's function, which is the major namespace, cellular components describes where
+a gene's product has function in the cell and molecular function. Under each namespace, GO terms are organized in a hierarchical way, in a form
+of a directed acyclic graph (DAG). In this structure, a parent term can have multiple child terms and a child term can have multiple
+parent terms, but there is no loop in the xx. Also more on the top of the DAG, more general the corresponding term is.
+
+GO has a rich resource that in current version (2022-07-01), there are 43558 GO terms, with more tham 7 million annotations to more than 5000 species.
+This provides a powerful resouces for studying not only model species, but a huge number of other species, which normally other gene set 
+databases do not support.
+
+
+```{r, echo = FALSE}
+knitr::include_graphics("figures/GO_0000075_2.png")
+```
+
+GO has two major parts. The first is the GO structure itself, which how to orgianize differnet biological terms, which is species-independent. The second 
+is the GO annotation (GOA) which provides mappings between GO terms to genes or proteins for a specific species. Thus, a GO term can be linked to a set of genes, 
+and this is called GO gene sets. One thing that should be noted is due to the DAG strucutre, a child term xx to its parent term, thus all genes annotated to
+a GO terms are also annotated it its parent term.
+
+The GO DAG structure also provides useful information to xxx. In most cases when we do gene set enrichmetn analysis, we normally do not consider
+its GO structure, however, In Chapter xx we will discuss to visualize GO enrichment results with DAG and in chapter xx we will discuss to simplify GO 
+terms by taking the inforamtion of DAG structures.
+
+Bioconductor provides a nice of GO-related and reformatted resources as core packages, which is convinient to read, to process and to integrated 
+into downstream analysis. More importantly, these annotation packages are always updated by bioconductor core teams and it is always make sure
+the resouces are up-to-date in each BIoconductor release.
+
+### The GO.db package
+
+The first package I will introduce is the **GO.db** package. It is maintained
+by the Bioconductor core team and it is frequently updated in every bioc
+release. Thus, it always stores up-to-date data for GO and it can be treated
+as the standard source to read and process GO data in R. **GO.db** contains detailed
+information of GO terms as well as the hierarchical structure of the GO tree. The
+data in **GO.db** is only focused on GO terms and their relations, and it is independent to specific organisms. 
+
+**GO.db** is constructed by the low-level package **AnnotationDbi**, which defines
+a general database interface for storing and precessing biological annotation data. Internally the GO data is represented
+as an SQLite database with multiple tables. A large number of low-level functions defined in **AnnotationDbi**
+can be applied to the objects in **GO.db** to get customized filtering on GO data. Expericenced readers
+may go to the documentation of **AnnotationDbi** for more information.
+
+First let's load the **GO.db** package.
+
+```{r, message = FALSE}
+library(GO.db)
+```
+
+Simply printing the object `GO.db` shows the basic information of the package.
+The two most important fields are the source file (`GOSOURCEURL`) and the date
+(`GOSOURCEDATE`) to build the package.
+
+```{r}
+GO.db
+```
+
+`GO.db` is a database object created by **AnnotationDbi**, thus, the general
+method `select()` can be applied to retrieve the data by specifying a vector
+of "keys" which is a list of GO IDs, and a group of "columns" which are the
+fields where the values are retrieved. In the following code, we extracted the
+values of `"ONTOLOGY"` and `"TERM"` for two GO IDs. The valid columns names
+can be obtained by `columns(GO.db)`.
+
+```{r}
+select(GO.db, keys = c("GO:0000001", "GO:0000002"), 
+    columns = c("ONTOLOGY", "TERM"))
+```
+
+However, we don't really need to use the low-level function `select()` to
+retrieve the data. In **GO.db**, there are several tables that have already
+been compiled and can be used directly. These tables are represented as
+objects in the package. The following command prints all the variables that
+are exported in **GO.db**. Note, in the interactive R terminal, users can also
+see the variables by typing `GO.db::` with two continuous tabs.
+
+```{r, echo = FALSE}
+ls = function(x, ...) {
+    setdiff(base::ls(x, ...), "datacache")
+}
+```
+
+```{r, echo = 1}
+ls(envir = asNamespace("GO.db"))
+```
+
+
+Before I introduce the GO-related objects, I first briefly introduce the
+following four functions `GO_dbInfo()`, `GO_dbconn()`, `GO_dbfile()` and
+`GO_dbschema()` in **GO.db**. These four functions can be executed without
+argument. They provides information of the database, e.g., `GO_dbfile()`
+returns the path of the database file.
+
+```{r}
+GO_dbfile()
+```
+
+If readers are interested, they can use external tools to view the `GO.sqlite`
+file to see the internal representation of the database tables. However, for
+other readers, the internal representation of data is less important.
+**GO.db** provides an easy interface for processing the GO data, as data
+frames or lists.
+
+First let's look at the variable `GOTERM`. It contains basic information of
+every individual GO term, such as GO ID, the namespace and the definition.
+
+```{r}
+GOTERM
+```
+
+`GOTERM` is an object of class `GOTermsAnnDbBimap`, which is a child class of
+a more general class `Bimap` defined in `AnnotationDbi`. Thus, many low-level
+functions defined in **AnnotationDbi** can be applied to `GOTERM` (see the
+documentation of `Bimap`). However, as suggested in the documentation of
+`GOTERM`, we do not need to directly work with these low-level classes, while
+we just simply convert it to a list.
+
+```{r}
+gl = as.list(GOTERM)
+```
+
+Now `gl` is a normal list of GO terms. We can check the total number of GO
+terms in current version of **GO.db**.
+
+```{r}
+length(gl)
+```
+
+We can get a single GO term by specifying the index.
+
+```{r}
+term = gl[[1]]  ## also gl[["GO:0000001"]]
+term
+```
+
+The output after printing `term` includes several fields and the corresponding
+values. Although `gl` is a normal list, its elements are still in a special
+class `GOTerms` (try typing `class(term)`). There are several "getter"
+functions to extract values in the corresponding fields. The most important
+functions are `GOID()`, `Term()`, `Ontology()`, and `Definition()`.
+
+```{r}
+GOID(term)
+Term(term)
+Ontology(term)
+Definition(term)
+```
+
+So, to get the namespaces of all GO terms, we can do:
+
+```{r, eval = FALSE}
+sapply(gl, Ontology)
+```
+
+Besides being applied to the single GO terms, these "getter" functions can be
+directly applied to the global object `GOTERM` to extract information of all
+GO terms simultaneously.
+
+```{r all_go}
+head(GOID(GOTERM))
+```
+
+Now let's go back to the object `GOTERM`. It stores data for all GO terms, so
+essentially it is a list of elements in a certain format. `GOTERM` or its
+class `GOTermsAnnDbBimap` allows subsetting to obtain a subset of GO terms.
+There are two types of subset operators: single bracket `[` and double
+brackets `[[` and they have different behaviors.
+
+Similar as the subset operators for list, the single bracket `[` returns a
+subset of data but still keeps the original format. Both numeric and character
+indices are allowed, but more often, character indices as GO IDs are used.
+
+```{r}
+# note you can also use numeric indices
+GOTERM[c("GO:0000001", "GO:0000002", "GO:0000003")]
+``` 
+
+The double-bracket operator `[[` is different. It degenerates the original
+format and directly extracts the element in it. Note here only a single
+character index is allows:
+
+```{r}
+# note numeric index is not allowed
+GOTERM[["GO:0000001"]]
+```
+
+Directly applying `Ontology()` on `GOTERM`, it is easy to count number of GO
+terms in each namespace.
+
+```{r}
+table(Ontology(GOTERM))
+```
+
+Interestingly, besides the three namespaces `"BP"`, `"CC"` and `"MF"`, there
+is an additionally namespace `"universal"` that only contains one term. As
+mentioned before, the three GO namespaces are isolateted. However, some tools
+may require all GO terms are connected if the relations are represented as a
+graph. Thus, one pseudo "universal root term" is added as the parent of root
+nodes in the three namespaces. In **GO.db**, this special term has an ID
+`"all"`.
+
+```{r}
+which(Ontology(GOTERM) == "universal")
+GOTERM[["all"]]
+```
+
+**GO.db** also provides variables that contains the relations between GO
+terms. Take biological process namespace as an example, there are the
+following four variables (similar for other two namespaces, but with `GOCC`
+and `GOMF` prefix).
+
+- `GOBPCHILDREN`
+- `GOBPPARENTS`
+- `GOBPOFFSPRING`
+- `GOBPANCESTOR`
+
+
+`GOBPCHILDREN` and `GOBPPARENTS` contain parent-child relations.
+`GOBPOFFSPRING` contains all offspring terms of GO terms (i.e., all downstream
+terms of a term in the GO tree) and `GOBPANCESTOR` contais all ancestor terms
+of a GO term (i.e. all upstream terms of a term). The information in the four
+variables are actually redudant, e.g., all the other three objects can be
+constructed from `GOBPCHILDREN`. However, these pre-computated objects and it
+will save time in downstream analysis.
+
+The four variables are in the same format (objects of the `AnnDbBimap` class).
+Taking `GOBPCHILDREN` as an example, we directly convert it to a list.
+
+```{r}
+lt = as.list(GOBPCHILDREN)
+head(lt)
+```
+
+`lt` is a simple list of vectors where each vector are child terms of a
+specific GO term, e.g., `GO:0000002` has a child term `GO:0032042`. The
+element vectors in `lt` are also named and the names represent the relation of
+the child term to the parent term. When the element vector has a value `NA`,
+e.g. `GO::0000001`, this means the GO term is a leaf in the GO tree, and it
+has no child term.
+
+Some downstream analysis, e.g., network analysis, may expect the relations to
+be represented as two columns. In this case, we can use the general function
+`toTable()` defined in **AnnotationDbi** to convert `GOBPCHILDREN` to a data
+frame.
+
+```{r}
+tb = toTable(GOBPCHILDREN)
+head(tb)
+```
+
+Unfortunately, the first two columns in `tb` have the same name. A good idea
+is to add meaningful column names to it.
+
+```{r}
+colnames(tb)[1:2] = c("child", "parent")
+```
+
+With `tb`, we can calculate the fraction of different relations of GO terms.
+
+```{r}
+tb = toTable(GOBPCHILDREN)
+table(tb[, 3])
+```
+
+Note, only `GOBPPARENTS` and `GOBPANCESTOR` contain the universal root term `"all"`.
+
+```{r}
+lt = as.list(GOBPPARENTS)
+lt[["GO:0008150"]]  # GO:0008150 is "biological process"
+```
+
+
+```{r, fig.width = 8, fig.height = 8, echo = FALSE}
+lt = as.list(GOBPCHILDREN)
+tb = table(sapply(lt, length))
+x = as.numeric(names(tb))
+y = as.vector(tb)
+
+library(ggplot2)
+p1 = ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+    geom_point() +
+    scale_x_continuous(trans='log10') +
+    scale_y_continuous(trans='log10') +
+    labs(x = "Number of child terms", y = "Counts") + ggtitle("GOBPCHILDREN")
+
+lt = as.list(GOBPPARENTS)
+lt = lt[names(lt) != "GO:0008150"]
+tb = table(sapply(lt, length))
+x = as.numeric(names(tb))
+y = as.vector(tb)
+
+library(ggplot2)
+p2 = ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+    geom_point() +
+    scale_y_continuous(trans='log10') +
+    labs(x = "Number of parent terms", y = "Counts") + ggtitle("GOBOPARENTS")
+
+lt = as.list(GOBPOFFSPRING)
+tb = table(sapply(lt, length))
+x = as.numeric(names(tb))
+y = as.vector(tb)
+
+library(ggplot2)
+p3 = ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+    geom_point() +
+    scale_x_continuous(trans='log10') +
+    scale_y_continuous(trans='log10') +
+    labs(x = "Number of offspring terms", y = "Counts") + ggtitle("GOBPOFFSPRING")
+
+lt = as.list(GOBPANCESTOR)
+lt = lt[names(lt) != "GO:0008150"]
+lt = lapply(lt, function(x) setdiff(x, "all"))
+tb = table(sapply(lt, length))
+x = as.numeric(names(tb))
+y = as.vector(tb)
+
+library(ggplot2)
+p4 = ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+    geom_point() +
+    scale_y_continuous(trans='log10') +
+    labs(x = "Number of ancestor terms", y = "Counts") + ggtitle("GOBPANCESTOR")
+
+library(cowplot)
+print(plot_grid(p1, p2, p3, p4, nrow = 2))
+```
+
+
+Relations in `GOBPCHILDREN` or `GOBPPARENTS` can be used to construct
+the GO graph. In the remaining part of this section, I will
+demonstrate some explorary analysis to show interesting attributes of
+the GO graph.
+
+Remember `toTable()` returns the relations between GO terms as a data
+frame, thus, it can be used as "edge list" (or adjacency list). In the
+following code, we use **igraph** package for network analysis. The
+function `graph.edgelist()` construct a graph object from a two-column
+matrix where the first column is the source of the link and the second
+column is the target of the link.
+
+```{r}
+library(igraph)
+tb = toTable(GOBPCHILDREN)
+g = graph.edgelist(as.matrix(tb[, 2:1]))
+```
+
+We can extract GO term with the highest in-degree. This is the term with the largest number of parents. This value can also be get from `GOBPPARENTS`.
+Please note `which.max()` only returns one index of the max value, but it does not mean it is the only max value.
+
+
+```{r}
+d = degree(g, mode = "in")
+d_in = d[which.max(d)]
+d_in
+GOTERM[[ names(d_in) ]]
+```
+
+We can calculate GO term with the highest out-degree. This is the term with the largest number of children. This value can also be get from `GOBPCHILDREN`.
+
+```{r}
+d = degree(g, mode = "out")
+d_out = d[which.max(d)]
+d_out
+GOTERM[[ names(d_out) ]]
+```
+
+We can explore some long-disatnce attributes, such as the distance from the root term to every term in the namespace.
+The distance can be thought as the depth of a term in the GO tree.
+
+
+```{r}
+dist = distances(g, v = "GO:0008150", mode = "out")
+table(dist)
+```
+
+We can also extract the longest path from the root term to the leaf terms.
+
+```{r}
+d = degree(g, mode = "out")
+leave = names(d[d == 0])
+sp = shortest_paths(g, from = "GO:0008150", to = leave, mode = "out")
+i = which.max(sapply(sp$vpath, length))
+path = sp$vpath[[i]]
+Term(GOTERM[names(path)])
+```
+
+
+### Link GO terms to genes
+
+As introduced in the previous section, **GO.db** only contains data for GO terms.
+GO also provides gene annotated to GO terms, by manual curation or computation prediction.
+Such annotations are represented as mapping between GO IDs and gene IDs from external databases,
+which are usually synchronized between major public databases such NCBI.
+To obtains genes in each GO term in R, Bioconductor provides a family of packages with name
+**org.\*.db**. Let's take human for example, the corresponding package is **org.Hs.eg.db**.
+**org.Hs.eg.db** which is a standard way
+to contains mappings from Entrez gene IDs to a variaty of other databases. 
+
+```{r}
+library(org.Hs.eg.db)
+```
+
+In this package, there are two database table objects for mapping between GO IDs and genes:
+
+- `org.Hs.egGO2EG`
+- `org.Hs.egGO2ALLEGS`
+
+The difference between the two objects is `org.Hs.egGO2EG` contains genes that are *directly annotated* to every GO term, while
+`org.Hs.egGO2ALLEGS` contains genes that directly assigned to the GO term, *as well as* genes assigned to all its offspring GO terms.
+
+
+Again, `org.Hs.egGO2ALLEGS` is a database object. There are two ways to obtain gene annotations to GO terms. The first is to 
+convert `org.Hs.egGO2ALLEGS` to a list of gene vectors.
+
+```{r}
+lt = as.list(org.Hs.egGO2ALLEGS)
+lt[3:4]
+```
+
+In this case, each element vector actually is a GO gene set. Note here the genes are in Entrez IDs, which are digits
+but in character mode. Node this is important to save the Gene IDs explicitely as characters to get rid of potential error
+due to indexing. We will emphasize it again in later text.
+
+Also the gene vector has names which are teh evidence to 
+
+`org.Hs.egGO2ALLEGS` is a database object, thus `toTable()` can be directly applied to convert it as a table.
+
+```{r}
+tb = toTable(org.Hs.egGO2ALLEGS)
+head(tb)
+```
+
+Now there is an additional column `"Ontology"`.
+
+With `tb`, we can look at the distribution of number of genes in GO gene sets.
+
+```{r, echo = FALSE, fig.width = 8, fig.height = 4}
+tb = tb[tb$Ontology == "BP", ]
+t1 = table(table(tb$go_id))
+x1 = as.numeric(names(t1))
+y1 = as.vector(t1)
+p1 = ggplot(data.frame(x = x1, y = y1), aes(x = x, y = y)) +
+    geom_point() +
+    scale_x_continuous(trans='log10') +
+    scale_y_continuous(trans='log10') +
+    labs(x = "Number of annotated genes", y = "Counts") + ggtitle("GOBP")
+
+t2 = table(table(tb$gene_id))
+x2 = as.numeric(names(t2))
+y2 = as.vector(t2)
+p2 = ggplot(data.frame(x = x2, y = y2), aes(x = x, y = y)) +
+    geom_point() +
+    scale_x_continuous(trans='log10') +
+    scale_y_continuous(trans='log10') +
+    labs(x = "Number of gene sets", y = "Counts") + ggtitle("GOBP")
+
+plot_grid(p1, p2, nrow = 1)
+```
+
+Biocondutor core team maintaines **org.\*.db** for 18 organisms
+
+```{r, echo = FALSE}
+tb = read.table(textConnection(
+"org.Hs.eg.db    Human   org.Ss.eg.db    Pig
+org.Mm.eg.db    Mouse   org.Gg.eg.db    Chicken
+org.Rn.eg.db    Rat org.Mmu.eg.db   Rhesus_monkey
+org.Dm.eg.db    Fruit_fly   org.Cf.eg.db    Canine
+org.At.tair.db  Arabidopsis org.EcK12.eg.db E_coli_strain_K12
+org.Sc.sgd.db   Yeast   org.Xl.eg.db    African_clawed_frog
+org.Dr.eg.db    Zebrafish   org.Ag.eg.db    Malaria_mosquito
+org.Ce.eg.db    Nematode    org.Pt.eg.db    Chimpanzee
+org.Bt.eg.db    Bovine  org.EcSakai.eg.db   E_coli_strain_Sakai
+"))
+```
+
+```{r, echo = FALSE}
+tb[, 1] = paste0("`", tb[, 1], "`")
+tb[, 3] = paste0("`", tb[, 3], "`")
+tb[, 2] = gsub("_", " ", tb[, 2])
+tb[, 4] = gsub("_", " ", tb[, 4])
+knitr::kable(tb, col.names = c("Package", "Organism", "Package", "Organism"))
+```
+
+The **org.\*.db** provided by Bioconductor should be enough for most of the analysis. However, there may be users
+who mainly work on non-model organism or microbomens where there is no such pre-compiled package on Bioconductor. 
+In this case, they may use the **biomaRt** package to ...
+
+
+The BioMart (https://www.ensembl.org/info/data/biomart) is a web-based sevice from Ensembl database which can be used to extract a huge umber of xxx. 
+The companion R package **biomaRt** provides a programatical interface to directly access BioMart purely in R. Using **biomaRt** to extract GO gene sets is complex
+and I will demonstrate step by step.
+
+1. Connect to a mart (database). 
+
+```{r}
+library(biomaRt)
+ensembl = useEnsembl(biomart = "genes")
+```
+
+By default, it uses the newest mart... To use 
+
+```{r, eval = FALSE}
+listEnsemblGenomes()
+```
+
+```{r, eval = FALSE}
+ensembl_fungi = useEnsemblGenomes("fungi_mart")
+```
+
+
+
+2. select a dataset for a specific organism. To find a valid value of dataset, `listDatasets(ensembl)`. The
+dataset is in the first column and should have suffix of `"_eg_gene"` or `"_gene_ensembl"`. In the following
+example, we choose the dataset `"amelanoleuca_gene_ensembl"` which is giant panda.
+
+```{r}
+dataset = "amelanoleuca_gene_ensembl"
+ensembl = useDataset(dataset = dataset, mart = ensembl)
+```
+
+3. get all genes for the organism. Having configured the xxx, we use the core function `getBM()` to get teh xxx
+Again, we need a proper value for the `attributes` argument. `listAttributes(ensembl)`. It returns a long table, users
+can need to filter xxx.
+
+```{r, eval = FALSE}
+tb_go = getBM(attributes = c("ensembl_gene_id", "go_id", "namespace_1003"), 
+    mart = ensembl)
+```
+
+4. merge xxx
+
+```{r, eval = FALSE}
+tb = tb_go[tb_go$namespace_1003 == "biological_process", , drop = FALSE]
+gs = split(tb$ensembl_gene_id, tb$go_id)
+
+bp_terms = keys(GOBPOFFSPRING)
+gs2 = lapply(bp_terms, function(nm) {
+    go_id = c(nm, GOBPOFFSPRING[[nm]])
+    unique(unlist(gs[go_id]))
+})
+names(gs2) = bp_terms
+gs2 = gs2[sapply(gs2, length) > 0]
+```
+
+For some organisms, the table might be huge. Since the data is retrieved from Ensembl server via internet, 
+large table might be corrupted during data transfering. A safer way is to split genes into blocks and downloaded
+the annotation xxx. Readers can take it as an excise .
+
+
+
+
+```{r, eval = FALSE}
+library(rGREAT)
+lt = getGeneSetsFromBioMart("amelanoleuca_gene_ensembl", "bp")
+```
+
+## KEGG pathways
+
+Kyoto Encyclopedia of Genes and Genomes (KEGG) is a comprehensive database of genomic and molecular data for variaty of 
+organisms. Its sub-database the pathway database is a widely used gene set database used in current studies. 
+In KEGG, pathways are manually curated and number of genes in pathways are intermediate
+
+
+
+```{r, echo = FALSE}
+ln = readLines("data/kegg_ko_hierarchy.txt")
+ln = ln[!grepl("^\\s*$", ln)]
+ind = grep("^\\w", ln)
+lt = list()
+for(i in seq_along(ind)) {
+    if(i < length(ind)) {
+        lt[[ ln[ind[i]] ]] = ln[seq(ind[i]+1, ind[i+1] - 1)]
+    } else {
+        lt[[ ln[ind[i]] ]] = ln[seq(ind[i]+1, length(ln))]
+    }
+}
+lt = lapply(lt, function(x) {
+    x = x[grepl("\\d\\d\\d\\d\\d", x)]
+    gsub("^.*(\\d\\d\\d\\d\\d).*$", "\\1", x)
+})
+```
+
+KEGG provides its data via a REST API (https://rest.kegg.jp/). There are several commands that can be used to retrieve specific types of data.
+For example, to get the mapping between human genes and KEGG pathways, users can use the `link` command:
+
+```{r}
+df1 = read.table(url("https://rest.kegg.jp/link/pathway/hsa"), 
+    sep = "\t")
+head(df1)
+```
+
+In the example, `url()` construct a connection object that directly transfer data from the remote URL. In output, the first column contains Entrez ID
+(users may remove the hsa: prefix for downstream analysis) and the second columncontains KEGG pathways IDs (users may remove the "path:" previx).
+
+To get the full name of pathways, use the `list` command:
+
+```{r}
+df2 = read.table(url("https://rest.kegg.jp/list/pathway/hsa"), 
+    sep = "\t")
+head(df2)
+```
+
+There are two Bioconductor packages for retrieving pathway data from KEGG. Both of them are based on KEGG REST API. The first one is the package **KEGGREST** which
+implements a full interface to access KEGG data in R. All the API from KEGG REST service are suppoted in **KEGGREST**. For example, to get the mapping
+between genes and pathways, the function `keggLink()` can be used.
+
+```{r}
+library(KEGGREST)
+pathway2gene = keggLink("pathway", "hsa")
+head(pathway2gene)
+```
+
+The returned object `pathway2gene` is a named vector, where the names corresponding to the source and the values correspond to the target. Readers can try to
+execute `keggLink("hsa", "pathway")` to compare the results.
+
+The named vectors are not common for downstream gene set analysis. A more used format is a data frame. We can simply converted them as:
+
+```{r}
+p2g_df = data.frame(gene_id = gsub("hsa:", "", names(pathway2gene)),
+    pathway_id = gsub("path:", "", pathway2gene))
+head(p2g_df)
+```
+
+In the pathway ID, the prefix in letters corresponds to the organism, e.g. `hsa` for human. Users can go to the KEGG website to find the prefix for their organisms.
+Programmitically, `keggList("organims")` can be used which lists all supported organisms and their prefix in KEGG.
+
+Last but not the least, another useful function in **KEGGREST** is `keggGet()` which implements the `get` command from REST API. With this function users can download
+images and KGML of pathways.
+
+```{r, eval = FALSE}
+keggGet("hsa", "image")
+keggGet("hsa", "kgml")
+``` 
+
+However, the conf file is not supported by `keggGet()`. Users need to directly read from the URL
+
+```{r, eval = FALSE}
+read.table(url("https://rest.kegg.jp/get/hsa05130/conf"),
+    sep = "\t")
+```
+
+The conf file contains coordinate of genes or nodes in the image. It is useful if users want to highlght genes in the image.
+
+The second Bioconductor pacakge **clusterProfiler** has a simple function `download_KEGG()` which accepts the prefix of a organism and returns a list of two data frames,
+one for the mapping between genes and pathways and the other for the full name of pathways.
+
+```{r}
+lt = clusterProfiler::download_KEGG("hsa")
+head(lt$KEGGPATHID2EXTID)
+head(lt$KEGGPATHID2NAME)
+```
+
+The two packages mentioned above do not provide data for teh network representation of pathways. In Chapter I will demonstrate how to read and process pathways as networks. Here
+we simply treat pathways as lists of genes and we ignore the relations of genes .
+
+## Reactome pathways
+
+Reactome is another popular pathway database. It organise pathways in an hierarchical category, which contains pathways and sub pathways
+or pathway components. Currently there are xx pathways. The up-to-date pathway data can be direclty found at https://reactome.org/download-data.
+
+There is a **reactome.db** on Bioconductor. Similar as other annotation packages. Users can type `reactome.db::` with two continuous tabs to see the objects
+supported in the package. In it, the important objects are 
+
+- `reactomePATHID2EXTID` contains mappings between reacotme pathway IDs and gene entrez IDs
+- `reactomePATHID2NAME` contains pathway names
+
+```{r}
+library(reactome.db)
+tb = toTable(reactomePATHID2EXTID)
+head(tb)
+p2n = toTable(reactomePATHID2NAME)
+head(p2n)
+```
+
+In the previous code, we use the function `toTable()` to retrieve the data as data frames. Readers may try `as.list()` on the two objects and compare the output.
+
+Reactome also contains pathway for multiple organisms. In the reactome ID, teh second section contains the organism, e.g. in previous output `HSA`. 
+
+```{r}
+table( gsub("^R-(\\w+)-\\d+$", "\\1", p2n[, 1]) )
+```
+
+Again, **reactome.db** only contains pathways as list of genes. 
+
+## MSigDB
+
+Molecular signature xxx is a manually 
+
+```{r, message = FALSE}
+library(msigdbr)
+```
+
+Which species are supported. Please note MSigDB only provides gene sets for human,
+while **msigdbr** supports more species by annotating the homologous genes.
+
+```{r}
+msigdbr_species()
+```
+
+To obtain all gene sets:
+
+```{r}
+all_gene_sets = msigdbr() # by default it is human
+dim(all_gene_sets)
+```
+
+```{r}
+head(all_gene_sets)
+```
+
+```{r}
+as.data.frame(head(all_gene_sets))
+```
+
+All categories of gene sets:
+
+```{r}
+as.data.frame(msigdbr_collections())
+```
+
+E.g., we want to extract genesets in C2 category and CP:KEGG sub-category:
+
+```{r}
+gene_sets = msigdbr(category = "C2", subcategory = "CP:KEGG")
+gene_sets
+```
+
+
+## UniProt keywords
+
+```{r}
+library(UniProtKeywords)
+gl = load_keyword_genesets(9606)
+```
+
+## Other databases
+
+Other pathway databases, ...
+
+- DO
+- Mesh
+- pathway common
+- other ...
+
+## Gene ID map
+
+To perform gene set enrichment analysis, there are always two sources of data, one from genes and one from gene sets. Thus,
+the gene IDs in the two sources may not be the same. Thus 
+
+Thanks to the Bioconductor annotation ecosystem, the **org.\*.eg.db** family packages provide annotation sources of genes
+from various databases, take **org.Hs.eg.db** package as an example
+
+The second widely used package for gene ID coversion is **biomart** package which uses the service from ensemble biomart service.
+
+There are also helper functions implemented in packages using xxx. `bitr()` uses org.db packages for gene ID coversion. it returns 
+a two-column data from for the mapping. However, users need to set the type of , the values can be obtained by `columns(org.Hs.eg.db)`
+
+In the comparion package of this book, we have implemented a function `convert_to_entrez_id()`, which automatically recognize 
+the input gene ID type and convert to Entrez ID since almost all gene set database provide genes in Entrez IDs. The function will
+be used through this book. It can recognize the following input types:
+
+1. a character vector
+2. a numeric vector with gene names as names
+3. a matrix with gene names as row names.
+
+For the last two scenarios, if multple genes are mapped to a single Entrez ID, the corresponding elements rows are averaged.
+
+
+## Data structure 
+
+Currently there is no widely-accepted standard format for general gene set representation. As has been demonstrated,
+gene sets can be represetnted as a two-column data frame where each row contains a gene in a gene set. ALternatively, which
+can be easily converted from teh two-column data frame is as a list where each element in the list is a vector of genes.
+
+
+In the early days of bioconductor when dealling with microarray data, there is a **GSEAbase** package from bioconductor core team,
+which xxx. 
+
+BiocSet

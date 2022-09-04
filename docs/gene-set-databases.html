@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 3 Gene Set Databases | Gene Set Enrichment Analysis with R and Bioconductor</title>
+<meta name="author" content="Zuguang Gu">
+<meta name="generator" content="bookdown 0.27 with bs4_book()">
+<meta property="og:title" content="Chapter 3 Gene Set Databases | Gene Set Enrichment Analysis with R and Bioconductor">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 3 Gene Set Databases | Gene Set Enrichment Analysis with R and Bioconductor">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.4.0/transition.js"></script><script src="libs/bs3compat-0.4.0/tabs.js"></script><script src="libs/bs3compat-0.4.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<meta name="description" content="3.1 Overview Gene set enrichment analysis evaluates the associations of a gene list of interest to a collection of pre-defined gene sets, where each gene set represents a specific biological...">
+<meta property="og:description" content="3.1 Overview Gene set enrichment analysis evaluates the associations of a gene list of interest to a collection of pre-defined gene sets, where each gene set represents a specific biological...">
+<meta name="twitter:description" content="3.1 Overview Gene set enrichment analysis evaluates the associations of a gene list of interest to a collection of pre-defined gene sets, where each gene set represents a specific biological...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Gene Set Enrichment Analysis with R and Bioconductor</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">2</span> Introduction</a></li>
+<li><a class="active" href="gene-set-databases.html"><span class="header-section-number">3</span> Gene Set Databases</a></li>
+<li><a class="" href="over-representation-analysis.html"><span class="header-section-number">4</span> Over-Representation Analysis</a></li>
+<li><a class="" href="the-gsea-method.html"><span class="header-section-number">5</span> The GSEA method</a></li>
+<li><a class="" href="gsea-framework.html"><span class="header-section-number">6</span> GSEA framework</a></li>
+<li><a class="" href="gene-set-enrichment-analysis-in-genomics.html"><span class="header-section-number">7</span> Gene Set Enrichment Analysis in Genomics</a></li>
+<li><a class="" href="topology-based-pathway-enrichmetn.html"><span class="header-section-number">8</span> Topology-based pathway enrichmetn</a></li>
+<li><a class="" href="extensions-of-gsea.html"><span class="header-section-number">9</span> Extensions of GSEA</a></li>
+<li><a class="" href="visualization.html"><span class="header-section-number">10</span> Visualization</a></li>
+<li><a class="" href="clustering-and-simplifying-gsea-results.html"><span class="header-section-number">11</span> Clustering and simplifying GSEA results</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="gene-set-databases" class="section level1" number="3">
+<h1>
+<span class="header-section-number">3</span> Gene Set Databases<a class="anchor" aria-label="anchor" href="#gene-set-databases"><i class="fas fa-link"></i></a>
+</h1>
+<div id="overview" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview"><i class="fas fa-link"></i></a>
+</h2>
+<p>Gene set enrichment analysis evaluates the associations of a gene list of interest to a collection of pre-defined gene sets,
+where each gene set represents a specific biological attribute. Once the gene list is statistically significantly enriched in a gene set,
+the cocludsion is made that the corresponding biological function is significantly affected. Thus choose
+a proper type of gene sets is important to the studies. The construction of gene sets a very flexible. In most
+cases, they are from public databases where xx efforts have already been to categorize genes into sets. Nevertheless,
+the gene sets can also be self-defineds from personal studies, such as a set of genes in a network module, or xxx. In this chapter,
+we will introduce several major gene set databases and how to access the data in R.</p>
+</div>
+<div id="gene-ontology" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Gene Ontology<a class="anchor" aria-label="anchor" href="#gene-ontology"><i class="fas fa-link"></i></a>
+</h2>
+<p>Gene Ontology (GO) is perhaps the most used gene sets database in current studies. The GO project was started in 1999. It aims
+to construct biological functions in a well-organized form, which is both effcient for human-readable and machine-readable. It also
+provides annotations between well-defined biological terms to multiple species, which gives a comprehensive knowledge for functional
+studies.</p>
+<p>GO has three namespaces, which are 1. Biological process, 2. cellular componet and 3. molecular function, which describe a gene or its product
+protein from the three aspects. biological process describes what a gene’s function, which is the major namespace, cellular components describes where
+a gene’s product has function in the cell and molecular function. Under each namespace, GO terms are organized in a hierarchical way, in a form
+of a directed acyclic graph (DAG). In this structure, a parent term can have multiple child terms and a child term can have multiple
+parent terms, but there is no loop in the xx. Also more on the top of the DAG, more general the corresponding term is.</p>
+<p>GO has a rich resource that in current version (2022-07-01), there are 43558 GO terms, with more tham 7 million annotations to more than 5000 species.
+This provides a powerful resouces for studying not only model species, but a huge number of other species, which normally other gene set
+databases do not support.</p>
+<div class="inline-figure"><img src="figures/GO_0000075_2.png" width="625" style="display: block; margin: auto;"></div>
+<p>GO has two major parts. The first is the GO structure itself, which how to orgianize differnet biological terms, which is species-independent. The second
+is the GO annotation (GOA) which provides mappings between GO terms to genes or proteins for a specific species. Thus, a GO term can be linked to a set of genes,
+and this is called GO gene sets. One thing that should be noted is due to the DAG strucutre, a child term xx to its parent term, thus all genes annotated to
+a GO terms are also annotated it its parent term.</p>
+<p>The GO DAG structure also provides useful information to xxx. In most cases when we do gene set enrichmetn analysis, we normally do not consider
+its GO structure, however, In Chapter xx we will discuss to visualize GO enrichment results with DAG and in chapter xx we will discuss to simplify GO
+terms by taking the inforamtion of DAG structures.</p>
+<p>Bioconductor provides a nice of GO-related and reformatted resources as core packages, which is convinient to read, to process and to integrated
+into downstream analysis. More importantly, these annotation packages are always updated by bioconductor core teams and it is always make sure
+the resouces are up-to-date in each BIoconductor release.</p>
+<div id="the-go.db-package" class="section level3" number="3.2.1">
+<h3>
+<span class="header-section-number">3.2.1</span> The GO.db package<a class="anchor" aria-label="anchor" href="#the-go.db-package"><i class="fas fa-link"></i></a>
+</h3>
+<p>The first package I will introduce is the <strong>GO.db</strong> package. It is maintained
+by the Bioconductor core team and it is frequently updated in every bioc
+release. Thus, it always stores up-to-date data for GO and it can be treated
+as the standard source to read and process GO data in R. <strong>GO.db</strong> contains detailed
+information of GO terms as well as the hierarchical structure of the GO tree. The
+data in <strong>GO.db</strong> is only focused on GO terms and their relations, and it is independent to specific organisms.</p>
+<p><strong>GO.db</strong> is constructed by the low-level package <strong>AnnotationDbi</strong>, which defines
+a general database interface for storing and precessing biological annotation data. Internally the GO data is represented
+as an SQLite database with multiple tables. A large number of low-level functions defined in <strong>AnnotationDbi</strong>
+can be applied to the objects in <strong>GO.db</strong> to get customized filtering on GO data. Expericenced readers
+may go to the documentation of <strong>AnnotationDbi</strong> for more information.</p>
+<p>First let’s load the <strong>GO.db</strong> package.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">GO.db</span><span class="op">)</span></span></code></pre></div>
+<p>Simply printing the object <code>GO.db</code> shows the basic information of the package.
+The two most important fields are the source file (<code>GOSOURCEURL</code>) and the date
+(<code>GOSOURCEDATE</code>) to build the package.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GO.db</span></span>
+<span><span class="co"># GODb object:</span></span>
+<span><span class="co"># | GOSOURCENAME: Gene Ontology</span></span>
+<span><span class="co"># | GOSOURCEURL: http://current.geneontology.org/ontology/go-basic.obo</span></span>
+<span><span class="co"># | GOSOURCEDATE: 2022-03-10</span></span>
+<span><span class="co"># | Db type: GODb</span></span>
+<span><span class="co"># | package: AnnotationDbi</span></span>
+<span><span class="co"># | DBSCHEMA: GO_DB</span></span>
+<span><span class="co"># | GOEGSOURCEDATE: 2022-Mar17</span></span>
+<span><span class="co"># | GOEGSOURCENAME: Entrez Gene</span></span>
+<span><span class="co"># | GOEGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA</span></span>
+<span><span class="co"># | DBSCHEMAVERSION: 2.1</span></span></code></pre></div>
+<p><code>GO.db</code> is a database object created by <strong>AnnotationDbi</strong>, thus, the general
+method <code><a href="https://rdrr.io/pkg/AnnotationDbi/man/AnnotationDb-class.html">select()</a></code> can be applied to retrieve the data by specifying a vector
+of “keys” which is a list of GO IDs, and a group of “columns” which are the
+fields where the values are retrieved. In the following code, we extracted the
+values of <code>"ONTOLOGY"</code> and <code>"TERM"</code> for two GO IDs. The valid columns names
+can be obtained by <code>columns(GO.db)</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/AnnotationDb-class.html">select</a></span><span class="op">(</span><span class="va">GO.db</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"GO:0000001"</span>, <span class="st">"GO:0000002"</span><span class="op">)</span>, </span>
+<span>    columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ONTOLOGY"</span>, <span class="st">"TERM"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#         GOID ONTOLOGY                             TERM</span></span>
+<span><span class="co"># 1 GO:0000001       BP        mitochondrion inheritance</span></span>
+<span><span class="co"># 2 GO:0000002       BP mitochondrial genome maintenance</span></span></code></pre></div>
+<p>However, we don’t really need to use the low-level function <code><a href="https://rdrr.io/pkg/AnnotationDbi/man/AnnotationDb-class.html">select()</a></code> to
+retrieve the data. In <strong>GO.db</strong>, there are several tables that have already
+been compiled and can be used directly. These tables are represented as
+objects in the package. The following command prints all the variables that
+are exported in <strong>GO.db</strong>. Note, in the interactive R terminal, users can also
+see the variables by typing <code>GO.db::</code> with two continuous tabs.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/Bimap-envirAPI.html">ls</a></span><span class="op">(</span>envir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-internal.html">asNamespace</a></span><span class="op">(</span><span class="st">"GO.db"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#  [1] "GO"            "GO.db"         "GOBPANCESTOR"  "GOBPCHILDREN" </span></span>
+<span><span class="co">#  [5] "GOBPOFFSPRING" "GOBPPARENTS"   "GOCCANCESTOR"  "GOCCCHILDREN" </span></span>
+<span><span class="co">#  [9] "GOCCOFFSPRING" "GOCCPARENTS"   "GOMAPCOUNTS"   "GOMFANCESTOR" </span></span>
+<span><span class="co"># [13] "GOMFCHILDREN"  "GOMFOFFSPRING" "GOMFPARENTS"   "GOOBSOLETE"   </span></span>
+<span><span class="co"># [17] "GOSYNONYM"     "GOTERM"        "GO_dbInfo"     "GO_dbconn"    </span></span>
+<span><span class="co"># [21] "GO_dbfile"     "GO_dbschema"</span></span></code></pre></div>
+<p>Before I introduce the GO-related objects, I first briefly introduce the
+following four functions <code><a href="https://rdrr.io/pkg/GO.db/man/GO_dbconn.html">GO_dbInfo()</a></code>, <code><a href="https://rdrr.io/pkg/GO.db/man/GO_dbconn.html">GO_dbconn()</a></code>, <code><a href="https://rdrr.io/pkg/GO.db/man/GO_dbconn.html">GO_dbfile()</a></code> and
+<code><a href="https://rdrr.io/pkg/GO.db/man/GO_dbconn.html">GO_dbschema()</a></code> in <strong>GO.db</strong>. These four functions can be executed without
+argument. They provides information of the database, e.g., <code><a href="https://rdrr.io/pkg/GO.db/man/GO_dbconn.html">GO_dbfile()</a></code>
+returns the path of the database file.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/GO.db/man/GO_dbconn.html">GO_dbfile</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># [1] "/Users/guz/Library/R/x86_64/4.2/library/GO.db/extdata/GO.sqlite"</span></span></code></pre></div>
+<p>If readers are interested, they can use external tools to view the <code>GO.sqlite</code>
+file to see the internal representation of the database tables. However, for
+other readers, the internal representation of data is less important.
+<strong>GO.db</strong> provides an easy interface for processing the GO data, as data
+frames or lists.</p>
+<p>First let’s look at the variable <code>GOTERM</code>. It contains basic information of
+every individual GO term, such as GO ID, the namespace and the definition.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOTERM</span></span>
+<span><span class="co"># TERM map for GO (object of class "GOTermsAnnDbBimap")</span></span></code></pre></div>
+<p><code>GOTERM</code> is an object of class <code>GOTermsAnnDbBimap</code>, which is a child class of
+a more general class <code>Bimap</code> defined in <code>AnnotationDbi</code>. Thus, many low-level
+functions defined in <strong>AnnotationDbi</strong> can be applied to <code>GOTERM</code> (see the
+documentation of <code>Bimap</code>). However, as suggested in the documentation of
+<code>GOTERM</code>, we do not need to directly work with these low-level classes, while
+we just simply convert it to a list.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">GOTERM</span><span class="op">)</span></span></code></pre></div>
+<p>Now <code>gl</code> is a normal list of GO terms. We can check the total number of GO
+terms in current version of <strong>GO.db</strong>.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">gl</span><span class="op">)</span></span>
+<span><span class="co"># [1] 43705</span></span></code></pre></div>
+<p>We can get a single GO term by specifying the index.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">term</span> <span class="op">=</span> <span class="va">gl</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>  <span class="co">## also gl[["GO:0000001"]]</span></span>
+<span><span class="va">term</span></span>
+<span><span class="co"># GOID: GO:0000001</span></span>
+<span><span class="co"># Term: mitochondrion inheritance</span></span>
+<span><span class="co"># Ontology: BP</span></span>
+<span><span class="co"># Definition: The distribution of mitochondria, including the</span></span>
+<span><span class="co">#     mitochondrial genome, into daughter cells after mitosis or meiosis,</span></span>
+<span><span class="co">#     mediated by interactions between mitochondria and the cytoskeleton.</span></span>
+<span><span class="co"># Synonym: mitochondrial inheritance</span></span></code></pre></div>
+<p>The output after printing <code>term</code> includes several fields and the corresponding
+values. Although <code>gl</code> is a normal list, its elements are still in a special
+class <code>GOTerms</code> (try typing <code>class(term)</code>). There are several “getter”
+functions to extract values in the corresponding fields. The most important
+functions are <code><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOColsAndKeytypes.html">GOID()</a></code>, <code><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOTerms-class.html">Term()</a></code>, <code><a href="https://rdrr.io/pkg/BiocGenerics/man/Ontology.html">Ontology()</a></code>, and <code><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOTerms-class.html">Definition()</a></code>.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOColsAndKeytypes.html">GOID</a></span><span class="op">(</span><span class="va">term</span><span class="op">)</span></span>
+<span><span class="co"># [1] "GO:0000001"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOTerms-class.html">Term</a></span><span class="op">(</span><span class="va">term</span><span class="op">)</span></span>
+<span><span class="co"># [1] "mitochondrion inheritance"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/Ontology.html">Ontology</a></span><span class="op">(</span><span class="va">term</span><span class="op">)</span></span>
+<span><span class="co"># [1] "BP"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOTerms-class.html">Definition</a></span><span class="op">(</span><span class="va">term</span><span class="op">)</span></span>
+<span><span class="co"># [1] "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton."</span></span></code></pre></div>
+<p>So, to get the namespaces of all GO terms, we can do:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">gl</span>, <span class="va">Ontology</span><span class="op">)</span></span></code></pre></div>
+<p>Besides being applied to the single GO terms, these “getter” functions can be
+directly applied to the global object <code>GOTERM</code> to extract information of all
+GO terms simultaneously.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOColsAndKeytypes.html">GOID</a></span><span class="op">(</span><span class="va">GOTERM</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#   GO:0000001   GO:0000002   GO:0000003   GO:0000006 </span></span>
+<span><span class="co"># "GO:0000001" "GO:0000002" "GO:0000003" "GO:0000006"</span></span></code></pre></div>
+<p>Now let’s go back to the object <code>GOTERM</code>. It stores data for all GO terms, so
+essentially it is a list of elements in a certain format. <code>GOTERM</code> or its
+class <code>GOTermsAnnDbBimap</code> allows subsetting to obtain a subset of GO terms.
+There are two types of subset operators: single bracket <code>[</code> and double
+brackets <code>[[</code> and they have different behaviors.</p>
+<p>Similar as the subset operators for list, the single bracket <code>[</code> returns a
+subset of data but still keeps the original format. Both numeric and character
+indices are allowed, but more often, character indices as GO IDs are used.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># note you can also use numeric indices</span></span>
+<span><span class="va">GOTERM</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"GO:0000001"</span>, <span class="st">"GO:0000002"</span>, <span class="st">"GO:0000003"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co"># TERM submap for GO (object of class "GOTermsAnnDbBimap")</span></span></code></pre></div>
+<p>The double-bracket operator <code>[[</code> is different. It degenerates the original
+format and directly extracts the element in it. Note here only a single
+character index is allows:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># note numeric index is not allowed</span></span>
+<span><span class="va">GOTERM</span><span class="op">[[</span><span class="st">"GO:0000001"</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co"># GOID: GO:0000001</span></span>
+<span><span class="co"># Term: mitochondrion inheritance</span></span>
+<span><span class="co"># Ontology: BP</span></span>
+<span><span class="co"># Definition: The distribution of mitochondria, including the</span></span>
+<span><span class="co">#     mitochondrial genome, into daughter cells after mitosis or meiosis,</span></span>
+<span><span class="co">#     mediated by interactions between mitochondria and the cytoskeleton.</span></span>
+<span><span class="co"># Synonym: mitochondrial inheritance</span></span></code></pre></div>
+<p>Directly applying <code><a href="https://rdrr.io/pkg/BiocGenerics/man/Ontology.html">Ontology()</a></code> on <code>GOTERM</code>, it is easy to count number of GO
+terms in each namespace.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/Ontology.html">Ontology</a></span><span class="op">(</span><span class="va">GOTERM</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co">#        BP        CC        MF universal </span></span>
+<span><span class="co">#     28336      4183     11185         1</span></span></code></pre></div>
+<p>Interestingly, besides the three namespaces <code>"BP"</code>, <code>"CC"</code> and <code>"MF"</code>, there
+is an additionally namespace <code>"universal"</code> that only contains one term. As
+mentioned before, the three GO namespaces are isolateted. However, some tools
+may require all GO terms are connected if the relations are represented as a
+graph. Thus, one pseudo “universal root term” is added as the parent of root
+nodes in the three namespaces. In <strong>GO.db</strong>, this special term has an ID
+<code>"all"</code>.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/Ontology.html">Ontology</a></span><span class="op">(</span><span class="va">GOTERM</span><span class="op">)</span> <span class="op">==</span> <span class="st">"universal"</span><span class="op">)</span></span>
+<span><span class="co">#   all </span></span>
+<span><span class="co"># 43705</span></span>
+<span><span class="va">GOTERM</span><span class="op">[[</span><span class="st">"all"</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co"># GOID: all</span></span>
+<span><span class="co"># Term: all</span></span>
+<span><span class="co"># Ontology: universal</span></span>
+<span><span class="co"># Definition: NA</span></span></code></pre></div>
+<p><strong>GO.db</strong> also provides variables that contains the relations between GO
+terms. Take biological process namespace as an example, there are the
+following four variables (similar for other two namespaces, but with <code>GOCC</code>
+and <code>GOMF</code> prefix).</p>
+<ul>
+<li><code>GOBPCHILDREN</code></li>
+<li><code>GOBPPARENTS</code></li>
+<li><code>GOBPOFFSPRING</code></li>
+<li><code>GOBPANCESTOR</code></li>
+</ul>
+<p><code>GOBPCHILDREN</code> and <code>GOBPPARENTS</code> contain parent-child relations.
+<code>GOBPOFFSPRING</code> contains all offspring terms of GO terms (i.e., all downstream
+terms of a term in the GO tree) and <code>GOBPANCESTOR</code> contais all ancestor terms
+of a GO term (i.e. all upstream terms of a term). The information in the four
+variables are actually redudant, e.g., all the other three objects can be
+constructed from <code>GOBPCHILDREN</code>. However, these pre-computated objects and it
+will save time in downstream analysis.</p>
+<p>The four variables are in the same format (objects of the <code>AnnDbBimap</code> class).
+Taking <code>GOBPCHILDREN</code> as an example, we directly convert it to a list.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">GOBPCHILDREN</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lt</span><span class="op">)</span></span>
+<span><span class="co"># $`GO:0000001`</span></span>
+<span><span class="co"># [1] NA</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># $`GO:0000002`</span></span>
+<span><span class="co">#      part of </span></span>
+<span><span class="co"># "GO:0032042" </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># $`GO:0000003`</span></span>
+<span><span class="co">#          isa          isa      part of          isa          isa          isa </span></span>
+<span><span class="co"># "GO:0019953" "GO:0019954" "GO:0022414" "GO:0032504" "GO:0032505" "GO:0075325" </span></span>
+<span><span class="co">#          isa </span></span>
+<span><span class="co"># "GO:1990277" </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># $`GO:0000011`</span></span>
+<span><span class="co"># [1] NA</span></span></code></pre></div>
+<p><code>lt</code> is a simple list of vectors where each vector are child terms of a
+specific GO term, e.g., <code>GO:0000002</code> has a child term <code>GO:0032042</code>. The
+element vectors in <code>lt</code> are also named and the names represent the relation of
+the child term to the parent term. When the element vector has a value <code>NA</code>,
+e.g. <code>GO::0000001</code>, this means the GO term is a leaf in the GO tree, and it
+has no child term.</p>
+<p>Some downstream analysis, e.g., network analysis, may expect the relations to
+be represented as two columns. In this case, we can use the general function
+<code><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable()</a></code> defined in <strong>AnnotationDbi</strong> to convert <code>GOBPCHILDREN</code> to a data
+frame.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">GOBPCHILDREN</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#        go_id      go_id RelationshipType</span></span>
+<span><span class="co"># 1 GO:0032042 GO:0000002          part of</span></span>
+<span><span class="co"># 2 GO:0019953 GO:0000003              isa</span></span>
+<span><span class="co"># 3 GO:0019954 GO:0000003              isa</span></span>
+<span><span class="co"># 4 GO:0022414 GO:0000003          part of</span></span></code></pre></div>
+<p>Unfortunately, the first two columns in <code>tb</code> have the same name. A good idea
+is to add meaningful column names to it.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"child"</span>, <span class="st">"parent"</span><span class="op">)</span></span></code></pre></div>
+<p>With <code>tb</code>, we can calculate the fraction of different relations of GO terms.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">GOBPCHILDREN</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">tb</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co">#                  isa negatively regulates              part of </span></span>
+<span><span class="co">#                52089                 2753                 5048 </span></span>
+<span><span class="co"># positively regulates            regulates </span></span>
+<span><span class="co">#                 2742                 3197</span></span></code></pre></div>
+<p>Note, only <code>GOBPPARENTS</code> and <code>GOBPANCESTOR</code> contain the universal root term <code>"all"</code>.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">GOBPPARENTS</span><span class="op">)</span></span>
+<span><span class="va">lt</span><span class="op">[[</span><span class="st">"GO:0008150"</span><span class="op">]</span><span class="op">]</span>  <span class="co"># GO:0008150 is "biological process"</span></span>
+<span><span class="co">#   isa </span></span>
+<span><span class="co"># "all"</span></span></code></pre></div>
+<div class="inline-figure"><img src="02-database_files/figure-html/unnamed-chunk-23-1.png" width="768" style="display: block; margin: auto;"></div>
+<p>Relations in <code>GOBPCHILDREN</code> or <code>GOBPPARENTS</code> can be used to construct
+the GO graph. In the remaining part of this section, I will
+demonstrate some explorary analysis to show interesting attributes of
+the GO graph.</p>
+<p>Remember <code><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable()</a></code> returns the relations between GO terms as a data
+frame, thus, it can be used as “edge list” (or adjacency list). In the
+following code, we use <strong>igraph</strong> package for network analysis. The
+function <code><a href="https://rdrr.io/pkg/igraph/man/graph_from_edgelist.html">graph.edgelist()</a></code> construct a graph object from a two-column
+matrix where the first column is the source of the link and the second
+column is the target of the link.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igraph.org">igraph</a></span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">GOBPCHILDREN</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_edgelist.html">graph.edgelist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">tb</span><span class="op">[</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>We can extract GO term with the highest in-degree. This is the term with the largest number of parents. This value can also be get from <code>GOBPPARENTS</code>.
+Please note <code><a href="https://rdrr.io/r/base/which.min.html">which.max()</a></code> only returns one index of the max value, but it does not mean it is the only max value.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/degree.html">degree</a></span><span class="op">(</span><span class="va">g</span>, mode <span class="op">=</span> <span class="st">"in"</span><span class="op">)</span></span>
+<span><span class="va">d_in</span> <span class="op">=</span> <span class="va">d</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">d_in</span></span>
+<span><span class="co"># GO:0106110 </span></span>
+<span><span class="co">#         11</span></span>
+<span><span class="va">GOTERM</span><span class="op">[[</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">d_in</span><span class="op">)</span> <span class="op">]</span><span class="op">]</span></span>
+<span><span class="co"># GOID: GO:0106110</span></span>
+<span><span class="co"># Term: vomitoxin biosynthetic process</span></span>
+<span><span class="co"># Ontology: BP</span></span>
+<span><span class="co"># Definition: The chemical reactions and pathways resulting in the</span></span>
+<span><span class="co">#     formation of type B trichothecene vomitoxin, also known as</span></span>
+<span><span class="co">#     deoxynivalenol, a poisonous substance produced by some species of</span></span>
+<span><span class="co">#     fungi and predominantly occurs in grains such as wheat, barley and</span></span>
+<span><span class="co">#     oats.</span></span>
+<span><span class="co"># Synonym: deoxynivalenol biosynthetic process</span></span>
+<span><span class="co"># Synonym: DON biosynthetic process</span></span>
+<span><span class="co"># Synonym: vomitoxin anabolism</span></span>
+<span><span class="co"># Synonym: vomitoxin biosynthesis</span></span>
+<span><span class="co"># Synonym: vomitoxin formation</span></span>
+<span><span class="co"># Synonym: vomitoxin synthesis</span></span></code></pre></div>
+<p>We can calculate GO term with the highest out-degree. This is the term with the largest number of children. This value can also be get from <code>GOBPCHILDREN</code>.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/degree.html">degree</a></span><span class="op">(</span><span class="va">g</span>, mode <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span></span>
+<span><span class="va">d_out</span> <span class="op">=</span> <span class="va">d</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">d_out</span></span>
+<span><span class="co"># GO:0048856 </span></span>
+<span><span class="co">#        198</span></span>
+<span><span class="va">GOTERM</span><span class="op">[[</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">d_out</span><span class="op">)</span> <span class="op">]</span><span class="op">]</span></span>
+<span><span class="co"># GOID: GO:0048856</span></span>
+<span><span class="co"># Term: anatomical structure development</span></span>
+<span><span class="co"># Ontology: BP</span></span>
+<span><span class="co"># Definition: The biological process whose specific outcome is the</span></span>
+<span><span class="co">#     progression of an anatomical structure from an initial condition to</span></span>
+<span><span class="co">#     its mature state. This process begins with the formation of the</span></span>
+<span><span class="co">#     structure and ends with the mature structure, whatever form that</span></span>
+<span><span class="co">#     may be including its natural destruction. An anatomical structure</span></span>
+<span><span class="co">#     is any biological entity that occupies space and is distinguished</span></span>
+<span><span class="co">#     from its surroundings. Anatomical structures can be macroscopic</span></span>
+<span><span class="co">#     such as a carpel, or microscopic such as an acrosome.</span></span>
+<span><span class="co"># Synonym: development of an anatomical structure</span></span></code></pre></div>
+<p>We can explore some long-disatnce attributes, such as the distance from the root term to every term in the namespace.
+The distance can be thought as the depth of a term in the GO tree.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dist</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/distances.html">distances</a></span><span class="op">(</span><span class="va">g</span>, v <span class="op">=</span> <span class="st">"GO:0008150"</span>, mode <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">dist</span><span class="op">)</span></span>
+<span><span class="co"># dist</span></span>
+<span><span class="co">#    0    1    2    3    4    5    6    7    8    9   10   11 </span></span>
+<span><span class="co">#    1   30  564 3601 7498 7992 4962 2414 1021  208   40    5</span></span></code></pre></div>
+<p>We can also extract the longest path from the root term to the leaf terms.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/degree.html">degree</a></span><span class="op">(</span><span class="va">g</span>, mode <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span></span>
+<span><span class="va">leave</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">d</span><span class="op">[</span><span class="va">d</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">sp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/distances.html">shortest_paths</a></span><span class="op">(</span><span class="va">g</span>, from <span class="op">=</span> <span class="st">"GO:0008150"</span>, to <span class="op">=</span> <span class="va">leave</span>, mode <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span></span>
+<span><span class="va">i</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">sp</span><span class="op">$</span><span class="va">vpath</span>, <span class="va">length</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">path</span> <span class="op">=</span> <span class="va">sp</span><span class="op">$</span><span class="va">vpath</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/GOTerms-class.html">Term</a></span><span class="op">(</span><span class="va">GOTERM</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#                                                                                         GO:0008150 </span></span>
+<span><span class="co">#                                                                               "biological_process" </span></span>
+<span><span class="co">#                                                                                         GO:0008152 </span></span>
+<span><span class="co">#                                                                                "metabolic process" </span></span>
+<span><span class="co">#                                                                                         GO:0009893 </span></span>
+<span><span class="co">#                                                         "positive regulation of metabolic process" </span></span>
+<span><span class="co">#                                                                                         GO:0031325 </span></span>
+<span><span class="co">#                                                "positive regulation of cellular metabolic process" </span></span>
+<span><span class="co">#                                                                                         GO:0032270 </span></span>
+<span><span class="co">#                                        "positive regulation of cellular protein metabolic process" </span></span>
+<span><span class="co">#                                                                                         GO:0045862 </span></span>
+<span><span class="co">#                                                               "positive regulation of proteolysis" </span></span>
+<span><span class="co">#                                                                                         GO:0010952 </span></span>
+<span><span class="co">#                                                        "positive regulation of peptidase activity" </span></span>
+<span><span class="co">#                                                                                         GO:0010950 </span></span>
+<span><span class="co">#                                                    "positive regulation of endopeptidase activity" </span></span>
+<span><span class="co">#                                                                                         GO:2001056 </span></span>
+<span><span class="co">#                                      "positive regulation of cysteine-type endopeptidase activity" </span></span>
+<span><span class="co">#                                                                                         GO:0043280 </span></span>
+<span><span class="co">#        "positive regulation of cysteine-type endopeptidase activity involved in apoptotic process" </span></span>
+<span><span class="co">#                                                                                         GO:0006919 </span></span>
+<span><span class="co">#                 "activation of cysteine-type endopeptidase activity involved in apoptotic process" </span></span>
+<span><span class="co">#                                                                                         GO:0008635 </span></span>
+<span><span class="co"># "activation of cysteine-type endopeptidase activity involved in apoptotic process by cytochrome c"</span></span></code></pre></div>
+</div>
+<div id="link-go-terms-to-genes" class="section level3" number="3.2.2">
+<h3>
+<span class="header-section-number">3.2.2</span> Link GO terms to genes<a class="anchor" aria-label="anchor" href="#link-go-terms-to-genes"><i class="fas fa-link"></i></a>
+</h3>
+<p>As introduced in the previous section, <strong>GO.db</strong> only contains data for GO terms.
+GO also provides gene annotated to GO terms, by manual curation or computation prediction.
+Such annotations are represented as mapping between GO IDs and gene IDs from external databases,
+which are usually synchronized between major public databases such NCBI.
+To obtains genes in each GO term in R, Bioconductor provides a family of packages with name
+<strong>org.*.db</strong>. Let’s take human for example, the corresponding package is <strong>org.Hs.eg.db</strong>.
+<strong>org.Hs.eg.db</strong> which is a standard way
+to contains mappings from Entrez gene IDs to a variaty of other databases.</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">org.Hs.eg.db</span><span class="op">)</span></span></code></pre></div>
+<p>In this package, there are two database table objects for mapping between GO IDs and genes:</p>
+<ul>
+<li><code>org.Hs.egGO2EG</code></li>
+<li><code>org.Hs.egGO2ALLEGS</code></li>
+</ul>
+<p>The difference between the two objects is <code>org.Hs.egGO2EG</code> contains genes that are <em>directly annotated</em> to every GO term, while
+<code>org.Hs.egGO2ALLEGS</code> contains genes that directly assigned to the GO term, <em>as well as</em> genes assigned to all its offspring GO terms.</p>
+<p>Again, <code>org.Hs.egGO2ALLEGS</code> is a database object. There are two ways to obtain gene annotations to GO terms. The first is to
+convert <code>org.Hs.egGO2ALLEGS</code> to a list of gene vectors.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">org.Hs.egGO2ALLEGS</span><span class="op">)</span></span>
+<span><span class="va">lt</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></span>
+<span><span class="co"># $`GO:0000012`</span></span>
+<span><span class="co">#         IGI         IDA         IDA         IDA         NAS         IDA </span></span>
+<span><span class="co">#       "142"      "1161"      "2074"      "3981"      "7014"      "7141" </span></span>
+<span><span class="co">#         IEA         IGI         IMP         IMP         IBA         IDA </span></span>
+<span><span class="co">#      "7515"      "7515"      "7515"     "23411"     "54840"     "54840" </span></span>
+<span><span class="co">#         IBA         IDA         IMP         IMP         IEA </span></span>
+<span><span class="co">#     "55775"     "55775"     "55775"    "200558" "100133315" </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># $`GO:0000017`</span></span>
+<span><span class="co">#    IDA    IMP    ISS    IDA </span></span>
+<span><span class="co"># "6523" "6523" "6523" "6524"</span></span></code></pre></div>
+<p>In this case, each element vector actually is a GO gene set. Note here the genes are in Entrez IDs, which are digits
+but in character mode. Node this is important to save the Gene IDs explicitely as characters to get rid of potential error
+due to indexing. We will emphasize it again in later text.</p>
+<p>Also the gene vector has names which are teh evidence to</p>
+<p><code>org.Hs.egGO2ALLEGS</code> is a database object, thus <code><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable()</a></code> can be directly applied to convert it as a table.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">org.Hs.egGO2ALLEGS</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#   gene_id      go_id Evidence Ontology</span></span>
+<span><span class="co"># 1       1 GO:0008150       ND       BP</span></span>
+<span><span class="co"># 2       2 GO:0000003      IEA       BP</span></span>
+<span><span class="co"># 3       2 GO:0001553      IEA       BP</span></span>
+<span><span class="co"># 4       2 GO:0001867      IDA       BP</span></span></code></pre></div>
+<p>Now there is an additional column <code>"Ontology"</code>.</p>
+<p>With <code>tb</code>, we can look at the distribution of number of genes in GO gene sets.</p>
+<div class="inline-figure"><img src="02-database_files/figure-html/unnamed-chunk-32-1.png" width="768" style="display: block; margin: auto;"></div>
+<p>Biocondutor core team maintaines <strong>org.*.db</strong> for 18 organisms</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">Package</th>
+<th align="left">Organism</th>
+<th align="left">Package</th>
+<th align="left">Organism</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>org.Hs.eg.db</code></td>
+<td align="left">Human</td>
+<td align="left"><code>org.Ss.eg.db</code></td>
+<td align="left">Pig</td>
+</tr>
+<tr class="even">
+<td align="left"><code>org.Mm.eg.db</code></td>
+<td align="left">Mouse</td>
+<td align="left"><code>org.Gg.eg.db</code></td>
+<td align="left">Chicken</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>org.Rn.eg.db</code></td>
+<td align="left">Rat</td>
+<td align="left"><code>org.Mmu.eg.db</code></td>
+<td align="left">Rhesus monkey</td>
+</tr>
+<tr class="even">
+<td align="left"><code>org.Dm.eg.db</code></td>
+<td align="left">Fruit fly</td>
+<td align="left"><code>org.Cf.eg.db</code></td>
+<td align="left">Canine</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>org.At.tair.db</code></td>
+<td align="left">Arabidopsis</td>
+<td align="left"><code>org.EcK12.eg.db</code></td>
+<td align="left">E coli strain K12</td>
+</tr>
+<tr class="even">
+<td align="left"><code>org.Sc.sgd.db</code></td>
+<td align="left">Yeast</td>
+<td align="left"><code>org.Xl.eg.db</code></td>
+<td align="left">African clawed frog</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>org.Dr.eg.db</code></td>
+<td align="left">Zebrafish</td>
+<td align="left"><code>org.Ag.eg.db</code></td>
+<td align="left">Malaria mosquito</td>
+</tr>
+<tr class="even">
+<td align="left"><code>org.Ce.eg.db</code></td>
+<td align="left">Nematode</td>
+<td align="left"><code>org.Pt.eg.db</code></td>
+<td align="left">Chimpanzee</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>org.Bt.eg.db</code></td>
+<td align="left">Bovine</td>
+<td align="left"><code>org.EcSakai.eg.db</code></td>
+<td align="left">E coli strain Sakai</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <strong>org.*.db</strong> provided by Bioconductor should be enough for most of the analysis. However, there may be users
+who mainly work on non-model organism or microbomens where there is no such pre-compiled package on Bioconductor.
+In this case, they may use the <strong>biomaRt</strong> package to …</p>
+<p>The BioMart (<a href="https://www.ensembl.org/info/data/biomart" class="uri">https://www.ensembl.org/info/data/biomart</a>) is a web-based sevice from Ensembl database which can be used to extract a huge umber of xxx.
+The companion R package <strong>biomaRt</strong> provides a programatical interface to directly access BioMart purely in R. Using <strong>biomaRt</strong> to extract GO gene sets is complex
+and I will demonstrate step by step.</p>
+<ol style="list-style-type: decimal">
+<li>Connect to a mart (database).</li>
+</ol>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">biomaRt</span><span class="op">)</span></span>
+<span><span class="va">ensembl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/biomaRt/man/useEnsembl.html">useEnsembl</a></span><span class="op">(</span>biomart <span class="op">=</span> <span class="st">"genes"</span><span class="op">)</span></span></code></pre></div>
+<p>By default, it uses the newest mart… To use</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/biomaRt/man/listEnsembl.html">listEnsemblGenomes</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ensembl_fungi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/biomaRt/man/useEnsembl.html">useEnsemblGenomes</a></span><span class="op">(</span><span class="st">"fungi_mart"</span><span class="op">)</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>select a dataset for a specific organism. To find a valid value of dataset, <code>listDatasets(ensembl)</code>. The
+dataset is in the first column and should have suffix of <code>"_eg_gene"</code> or <code>"_gene_ensembl"</code>. In the following
+example, we choose the dataset <code>"amelanoleuca_gene_ensembl"</code> which is giant panda.</li>
+</ol>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dataset</span> <span class="op">=</span> <span class="st">"amelanoleuca_gene_ensembl"</span></span>
+<span><span class="va">ensembl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/biomaRt/man/useDataset.html">useDataset</a></span><span class="op">(</span>dataset <span class="op">=</span> <span class="va">dataset</span>, mart <span class="op">=</span> <span class="va">ensembl</span><span class="op">)</span></span></code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li>get all genes for the organism. Having configured the xxx, we use the core function <code><a href="https://rdrr.io/pkg/biomaRt/man/getBM.html">getBM()</a></code> to get teh xxx
+Again, we need a proper value for the <code>attributes</code> argument. <code>listAttributes(ensembl)</code>. It returns a long table, users
+can need to filter xxx.</li>
+</ol>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb_go</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/biomaRt/man/getBM.html">getBM</a></span><span class="op">(</span>attributes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ensembl_gene_id"</span>, <span class="st">"go_id"</span>, <span class="st">"namespace_1003"</span><span class="op">)</span>, </span>
+<span>    mart <span class="op">=</span> <span class="va">ensembl</span><span class="op">)</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li>merge xxx</li>
+</ol>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb</span> <span class="op">=</span> <span class="va">tb_go</span><span class="op">[</span><span class="va">tb_go</span><span class="op">$</span><span class="va">namespace_1003</span> <span class="op">==</span> <span class="st">"biological_process"</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="va">gs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">tb</span><span class="op">$</span><span class="va">ensembl_gene_id</span>, <span class="va">tb</span><span class="op">$</span><span class="va">go_id</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">bp_terms</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/AnnotationDb-class.html">keys</a></span><span class="op">(</span><span class="va">GOBPOFFSPRING</span><span class="op">)</span></span>
+<span><span class="va">gs2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">bp_terms</span>, <span class="kw">function</span><span class="op">(</span><span class="va">nm</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">go_id</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">nm</span>, <span class="va">GOBPOFFSPRING</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">gs</span><span class="op">[</span><span class="va">go_id</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">gs2</span><span class="op">)</span> <span class="op">=</span> <span class="va">bp_terms</span></span>
+<span><span class="va">gs2</span> <span class="op">=</span> <span class="va">gs2</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">gs2</span>, <span class="va">length</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span></span></code></pre></div>
+<p>For some organisms, the table might be huge. Since the data is retrieved from Ensembl server via internet,
+large table might be corrupted during data transfering. A safer way is to split genes into blocks and downloaded
+the annotation xxx. Readers can take it as an excise .</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/rGREAT">rGREAT</a></span><span class="op">)</span></span>
+<span><span class="va">lt</span> <span class="op">=</span> <span class="fu">getGeneSetsFromBioMart</span><span class="op">(</span><span class="st">"amelanoleuca_gene_ensembl"</span>, <span class="st">"bp"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div id="kegg-pathways" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> KEGG pathways<a class="anchor" aria-label="anchor" href="#kegg-pathways"><i class="fas fa-link"></i></a>
+</h2>
+<p>Kyoto Encyclopedia of Genes and Genomes (KEGG) is a comprehensive database of genomic and molecular data for variaty of
+organisms. Its sub-database the pathway database is a widely used gene set database used in current studies.
+In KEGG, pathways are manually curated and number of genes in pathways are intermediate</p>
+<p>KEGG provides its data via a REST API (<a href="https://rest.kegg.jp/" class="uri">https://rest.kegg.jp/</a>). There are several commands that can be used to retrieve specific types of data.
+For example, to get the mapping between human genes and KEGG pathways, users can use the <code>link</code> command:</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/connections.html">url</a></span><span class="op">(</span><span class="st">"https://rest.kegg.jp/link/pathway/hsa"</span><span class="op">)</span>, </span>
+<span>    sep <span class="op">=</span> <span class="st">"\t"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">df1</span><span class="op">)</span></span>
+<span><span class="co">#          V1            V2</span></span>
+<span><span class="co"># 1 hsa:10327 path:hsa00010</span></span>
+<span><span class="co"># 2   hsa:124 path:hsa00010</span></span>
+<span><span class="co"># 3   hsa:125 path:hsa00010</span></span>
+<span><span class="co"># 4   hsa:126 path:hsa00010</span></span></code></pre></div>
+<p>In the example, <code><a href="https://rdrr.io/r/base/connections.html">url()</a></code> construct a connection object that directly transfer data from the remote URL. In output, the first column contains Entrez ID
+(users may remove the hsa: prefix for downstream analysis) and the second columncontains KEGG pathways IDs (users may remove the “path:” previx).</p>
+<p>To get the full name of pathways, use the <code>list</code> command:</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/connections.html">url</a></span><span class="op">(</span><span class="st">"https://rest.kegg.jp/list/pathway/hsa"</span><span class="op">)</span>, </span>
+<span>    sep <span class="op">=</span> <span class="st">"\t"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">df2</span><span class="op">)</span></span>
+<span><span class="co">#              V1                                                              V2</span></span>
+<span><span class="co"># 1 path:hsa00010             Glycolysis / Gluconeogenesis - Homo sapiens (human)</span></span>
+<span><span class="co"># 2 path:hsa00020                Citrate cycle (TCA cycle) - Homo sapiens (human)</span></span>
+<span><span class="co"># 3 path:hsa00030                Pentose phosphate pathway - Homo sapiens (human)</span></span>
+<span><span class="co"># 4 path:hsa00040 Pentose and glucuronate interconversions - Homo sapiens (human)</span></span></code></pre></div>
+<p>There are two Bioconductor packages for retrieving pathway data from KEGG. Both of them are based on KEGG REST API. The first one is the package <strong>KEGGREST</strong> which
+implements a full interface to access KEGG data in R. All the API from KEGG REST service are suppoted in <strong>KEGGREST</strong>. For example, to get the mapping
+between genes and pathways, the function <code><a href="https://rdrr.io/pkg/KEGGREST/man/keggLink.html">keggLink()</a></code> can be used.</p>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">KEGGREST</span><span class="op">)</span></span>
+<span><span class="va">pathway2gene</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/KEGGREST/man/keggLink.html">keggLink</a></span><span class="op">(</span><span class="st">"pathway"</span>, <span class="st">"hsa"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">pathway2gene</span><span class="op">)</span></span>
+<span><span class="co">#       hsa:10327         hsa:124         hsa:125         hsa:126 </span></span>
+<span><span class="co"># "path:hsa00010" "path:hsa00010" "path:hsa00010" "path:hsa00010"</span></span></code></pre></div>
+<p>The returned object <code>pathway2gene</code> is a named vector, where the names corresponding to the source and the values correspond to the target. Readers can try to
+execute <code>keggLink("hsa", "pathway")</code> to compare the results.</p>
+<p>The named vectors are not common for downstream gene set analysis. A more used format is a data frame. We can simply converted them as:</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p2g_df</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>gene_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">"hsa:"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">pathway2gene</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    pathway_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">"path:"</span>, <span class="st">""</span>, <span class="va">pathway2gene</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">p2g_df</span><span class="op">)</span></span>
+<span><span class="co">#   gene_id pathway_id</span></span>
+<span><span class="co"># 1   10327   hsa00010</span></span>
+<span><span class="co"># 2     124   hsa00010</span></span>
+<span><span class="co"># 3     125   hsa00010</span></span>
+<span><span class="co"># 4     126   hsa00010</span></span></code></pre></div>
+<p>In the pathway ID, the prefix in letters corresponds to the organism, e.g. <code>hsa</code> for human. Users can go to the KEGG website to find the prefix for their organisms.
+Programmitically, <code>keggList("organims")</code> can be used which lists all supported organisms and their prefix in KEGG.</p>
+<p>Last but not the least, another useful function in <strong>KEGGREST</strong> is <code><a href="https://rdrr.io/pkg/KEGGREST/man/keggGet.html">keggGet()</a></code> which implements the <code>get</code> command from REST API. With this function users can download
+images and KGML of pathways.</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/KEGGREST/man/keggGet.html">keggGet</a></span><span class="op">(</span><span class="st">"hsa"</span>, <span class="st">"image"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/KEGGREST/man/keggGet.html">keggGet</a></span><span class="op">(</span><span class="st">"hsa"</span>, <span class="st">"kgml"</span><span class="op">)</span></span></code></pre></div>
+<p>However, the conf file is not supported by <code><a href="https://rdrr.io/pkg/KEGGREST/man/keggGet.html">keggGet()</a></code>. Users need to directly read from the URL</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/connections.html">url</a></span><span class="op">(</span><span class="st">"https://rest.kegg.jp/get/hsa05130/conf"</span><span class="op">)</span>,</span>
+<span>    sep <span class="op">=</span> <span class="st">"\t"</span><span class="op">)</span></span></code></pre></div>
+<p>The conf file contains coordinate of genes or nodes in the image. It is useful if users want to highlght genes in the image.</p>
+<p>The second Bioconductor pacakge <strong>clusterProfiler</strong> has a simple function <code><a href="https://rdrr.io/pkg/clusterProfiler/man/download_KEGG.html">download_KEGG()</a></code> which accepts the prefix of a organism and returns a list of two data frames,
+one for the mapping between genes and pathways and the other for the full name of pathways.</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lt</span> <span class="op">=</span> <span class="fu">clusterProfiler</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/clusterProfiler/man/download_KEGG.html">download_KEGG</a></span><span class="op">(</span><span class="st">"hsa"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lt</span><span class="op">$</span><span class="va">KEGGPATHID2EXTID</span><span class="op">)</span></span>
+<span><span class="co">#       from    to</span></span>
+<span><span class="co"># 1 hsa00010 10327</span></span>
+<span><span class="co"># 2 hsa00010   124</span></span>
+<span><span class="co"># 3 hsa00010   125</span></span>
+<span><span class="co"># 4 hsa00010   126</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lt</span><span class="op">$</span><span class="va">KEGGPATHID2NAME</span><span class="op">)</span></span>
+<span><span class="co">#       from                                       to</span></span>
+<span><span class="co"># 1 hsa00010             Glycolysis / Gluconeogenesis</span></span>
+<span><span class="co"># 2 hsa00020                Citrate cycle (TCA cycle)</span></span>
+<span><span class="co"># 3 hsa00030                Pentose phosphate pathway</span></span>
+<span><span class="co"># 4 hsa00040 Pentose and glucuronate interconversions</span></span></code></pre></div>
+<p>The two packages mentioned above do not provide data for teh network representation of pathways. In Chapter I will demonstrate how to read and process pathways as networks. Here
+we simply treat pathways as lists of genes and we ignore the relations of genes .</p>
+</div>
+<div id="reactome-pathways" class="section level2" number="3.4">
+<h2>
+<span class="header-section-number">3.4</span> Reactome pathways<a class="anchor" aria-label="anchor" href="#reactome-pathways"><i class="fas fa-link"></i></a>
+</h2>
+<p>Reactome is another popular pathway database. It organise pathways in an hierarchical category, which contains pathways and sub pathways
+or pathway components. Currently there are xx pathways. The up-to-date pathway data can be direclty found at <a href="https://reactome.org/download-data" class="uri">https://reactome.org/download-data</a>.</p>
+<p>There is a <strong>reactome.db</strong> on Bioconductor. Similar as other annotation packages. Users can type <code>reactome.db::</code> with two continuous tabs to see the objects
+supported in the package. In it, the important objects are</p>
+<ul>
+<li>
+<code>reactomePATHID2EXTID</code> contains mappings between reacotme pathway IDs and gene entrez IDs</li>
+<li>
+<code>reactomePATHID2NAME</code> contains pathway names</li>
+</ul>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">reactome.db</span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">reactomePATHID2EXTID</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#          DB_ID gene_id</span></span>
+<span><span class="co"># 1 R-HSA-109582       1</span></span>
+<span><span class="co"># 2 R-HSA-114608       1</span></span>
+<span><span class="co"># 3 R-HSA-168249       1</span></span>
+<span><span class="co"># 4 R-HSA-168256       1</span></span>
+<span><span class="va">p2n</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">reactomePATHID2NAME</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">p2n</span><span class="op">)</span></span>
+<span><span class="co">#           DB_ID</span></span>
+<span><span class="co"># 1   R-BTA-73843</span></span>
+<span><span class="co"># 2 R-BTA-1971475</span></span>
+<span><span class="co"># 3 R-BTA-1369062</span></span>
+<span><span class="co"># 4  R-BTA-382556</span></span>
+<span><span class="co">#                                                                     path_name</span></span>
+<span><span class="co"># 1                                              1-diphosphate: 5-Phosphoribose</span></span>
+<span><span class="co"># 2 Bos taurus: A tetrasaccharide linker sequence is required for GAG synthesis</span></span>
+<span><span class="co"># 3                           Bos taurus: ABC transporters in lipid homeostasis</span></span>
+<span><span class="co"># 4                          Bos taurus: ABC-family proteins mediated transport</span></span></code></pre></div>
+<p>In the previous code, we use the function <code><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable()</a></code> to retrieve the data as data frames. Readers may try <code><a href="https://rdrr.io/r/base/list.html">as.list()</a></code> on the two objects and compare the output.</p>
+<p>Reactome also contains pathway for multiple organisms. In the reactome ID, teh second section contains the organism, e.g. in previous output <code>HSA</code>.</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">"^R-(\\w+)-\\d+$"</span>, <span class="st">"\\1"</span>, <span class="va">p2n</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co">#  BTA  CEL  CFA  DDI  DME  DRE  GGA  HSA  MMU  MTU  PFA  RNO  SCE  SPO  SSC  XTR </span></span>
+<span><span class="co"># 1691 1299 1653  979 1473 1671 1703 2585 1710   13  595 1697  809  816 1656 1576</span></span></code></pre></div>
+<p>Again, <strong>reactome.db</strong> only contains pathways as list of genes.</p>
+</div>
+<div id="msigdb" class="section level2" number="3.5">
+<h2>
+<span class="header-section-number">3.5</span> MSigDB<a class="anchor" aria-label="anchor" href="#msigdb"><i class="fas fa-link"></i></a>
+</h2>
+<p>Molecular signature xxx is a manually</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igordot.github.io/msigdbr/">msigdbr</a></span><span class="op">)</span></span></code></pre></div>
+<p>Which species are supported. Please note MSigDB only provides gene sets for human,
+while <strong>msigdbr</strong> supports more species by annotating the homologous genes.</p>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr_species.html">msigdbr_species</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># # A tibble: 20 × 2</span></span>
+<span><span class="co">#    species_name                    species_common_name                          </span></span>
+<span><span class="co">#    &lt;chr&gt;                           &lt;chr&gt;                                        </span></span>
+<span><span class="co">#  1 Anolis carolinensis             Carolina anole, green anole                  </span></span>
+<span><span class="co">#  2 Bos taurus                      bovine, cattle, cow, dairy cow, domestic cat…</span></span>
+<span><span class="co">#  3 Caenorhabditis elegans          &lt;NA&gt;                                         </span></span>
+<span><span class="co">#  4 Canis lupus familiaris          dog, dogs                                    </span></span>
+<span><span class="co">#  5 Danio rerio                     leopard danio, zebra danio, zebra fish, zebr…</span></span>
+<span><span class="co">#  6 Drosophila melanogaster         fruit fly                                    </span></span>
+<span><span class="co">#  7 Equus caballus                  domestic horse, equine, horse                </span></span>
+<span><span class="co">#  8 Felis catus                     cat, cats, domestic cat                      </span></span>
+<span><span class="co">#  9 Gallus gallus                   bantam, chicken, chickens, Gallus domesticus </span></span>
+<span><span class="co"># 10 Homo sapiens                    human                                        </span></span>
+<span><span class="co"># 11 Macaca mulatta                  rhesus macaque, rhesus macaques, Rhesus monk…</span></span>
+<span><span class="co"># 12 Monodelphis domestica           gray short-tailed opossum                    </span></span>
+<span><span class="co"># 13 Mus musculus                    house mouse, mouse                           </span></span>
+<span><span class="co"># 14 Ornithorhynchus anatinus        duck-billed platypus, duckbill platypus, pla…</span></span>
+<span><span class="co"># 15 Pan troglodytes                 chimpanzee                                   </span></span>
+<span><span class="co"># 16 Rattus norvegicus               brown rat, Norway rat, rat, rats             </span></span>
+<span><span class="co"># 17 Saccharomyces cerevisiae        baker's yeast, brewer's yeast, S. cerevisiae </span></span>
+<span><span class="co"># 18 Schizosaccharomyces pombe 972h- &lt;NA&gt;                                         </span></span>
+<span><span class="co"># 19 Sus scrofa                      pig, pigs, swine, wild boar                  </span></span>
+<span><span class="co"># 20 Xenopus tropicalis              tropical clawed frog, western clawed frog</span></span></code></pre></div>
+<p>To obtain all gene sets:</p>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">all_gene_sets</span> <span class="op">=</span> <span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html">msigdbr</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># by default it is human</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">all_gene_sets</span><span class="op">)</span></span>
+<span><span class="co"># [1] 4331807      15</span></span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">all_gene_sets</span><span class="op">)</span></span>
+<span><span class="co"># # A tibble: 4 × 15</span></span>
+<span><span class="co">#   gs_cat gs_subcat gs_name gene_…¹ entre…² ensem…³ human…⁴ human…⁵ human…⁶ gs_id</span></span>
+<span><span class="co">#   &lt;chr&gt;  &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;</span></span>
+<span><span class="co"># 1 C3     MIR:MIR_… AAACCA… ABCC4     10257 ENSG00… ABCC4     10257 ENSG00… M126…</span></span>
+<span><span class="co"># 2 C3     MIR:MIR_… AAACCA… ABRAXA…   23172 ENSG00… ABRAXA…   23172 ENSG00… M126…</span></span>
+<span><span class="co"># 3 C3     MIR:MIR_… AAACCA… ACTN4        81 ENSG00… ACTN4        81 ENSG00… M126…</span></span>
+<span><span class="co"># 4 C3     MIR:MIR_… AAACCA… ACTN4        81 ENSG00… ACTN4        81 ENSG00… M126…</span></span>
+<span><span class="co"># # … with 5 more variables: gs_pmid &lt;chr&gt;, gs_geoid &lt;chr&gt;,</span></span>
+<span><span class="co"># #   gs_exact_source &lt;chr&gt;, gs_url &lt;chr&gt;, gs_description &lt;chr&gt;, and abbreviated</span></span>
+<span><span class="co"># #   variable names ¹​gene_symbol, ²​entrez_gene, ³​ensembl_gene,</span></span>
+<span><span class="co"># #   ⁴​human_gene_symbol, ⁵​human_entrez_gene, ⁶​human_ensembl_gene</span></span>
+<span><span class="co"># # ℹ Use `colnames()` to see all variable names</span></span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">all_gene_sets</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#   gs_cat      gs_subcat        gs_name gene_symbol entrez_gene    ensembl_gene</span></span>
+<span><span class="co"># 1     C3 MIR:MIR_Legacy AAACCAC_MIR140       ABCC4       10257 ENSG00000125257</span></span>
+<span><span class="co"># 2     C3 MIR:MIR_Legacy AAACCAC_MIR140    ABRAXAS2       23172 ENSG00000165660</span></span>
+<span><span class="co"># 3     C3 MIR:MIR_Legacy AAACCAC_MIR140       ACTN4          81 ENSG00000130402</span></span>
+<span><span class="co"># 4     C3 MIR:MIR_Legacy AAACCAC_MIR140       ACTN4          81 ENSG00000282844</span></span>
+<span><span class="co">#   human_gene_symbol human_entrez_gene human_ensembl_gene  gs_id gs_pmid</span></span>
+<span><span class="co"># 1             ABCC4             10257    ENSG00000125257 M12609        </span></span>
+<span><span class="co"># 2          ABRAXAS2             23172    ENSG00000165660 M12609        </span></span>
+<span><span class="co"># 3             ACTN4                81    ENSG00000130402 M12609        </span></span>
+<span><span class="co"># 4             ACTN4                81    ENSG00000282844 M12609        </span></span>
+<span><span class="co">#   gs_geoid gs_exact_source gs_url</span></span>
+<span><span class="co"># 1                                </span></span>
+<span><span class="co"># 2                                </span></span>
+<span><span class="co"># 3                                </span></span>
+<span><span class="co"># 4                                </span></span>
+<span><span class="co">#                                                                     gs_description</span></span>
+<span><span class="co"># 1 Genes having at least one occurence of the motif AAACCAC in their 3' untransla..</span></span>
+<span><span class="co"># 2 Genes having at least one occurence of the motif AAACCAC in their 3' untransla..</span></span>
+<span><span class="co"># 3 Genes having at least one occurence of the motif AAACCAC in their 3' untransla..</span></span>
+<span><span class="co"># 4 Genes having at least one occurence of the motif AAACCAC in their 3' untransla..</span></span></code></pre></div>
+<p>All categories of gene sets:</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr_collections.html">msigdbr_collections</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#    gs_cat       gs_subcat num_genesets</span></span>
+<span><span class="co"># 1      C1                          299</span></span>
+<span><span class="co"># 2      C2             CGP         3384</span></span>
+<span><span class="co"># 3      C2              CP           29</span></span>
+<span><span class="co"># 4      C2     CP:BIOCARTA          292</span></span>
+<span><span class="co"># 5      C2         CP:KEGG          186</span></span>
+<span><span class="co"># 6      C2          CP:PID          196</span></span>
+<span><span class="co"># 7      C2     CP:REACTOME         1615</span></span>
+<span><span class="co"># 8      C2 CP:WIKIPATHWAYS          664</span></span>
+<span><span class="co"># 9      C3       MIR:MIRDB         2377</span></span>
+<span><span class="co"># 10     C3  MIR:MIR_Legacy          221</span></span>
+<span><span class="co"># 11     C3        TFT:GTRD          518</span></span>
+<span><span class="co"># 12     C3  TFT:TFT_Legacy          610</span></span>
+<span><span class="co"># 13     C4             CGN          427</span></span>
+<span><span class="co"># 14     C4              CM          431</span></span>
+<span><span class="co"># 15     C5           GO:BP         7658</span></span>
+<span><span class="co"># 16     C5           GO:CC         1006</span></span>
+<span><span class="co"># 17     C5           GO:MF         1738</span></span>
+<span><span class="co"># 18     C5             HPO         5071</span></span>
+<span><span class="co"># 19     C6                          189</span></span>
+<span><span class="co"># 20     C7     IMMUNESIGDB         4872</span></span>
+<span><span class="co"># 21     C7             VAX          347</span></span>
+<span><span class="co"># 22     C8                          700</span></span>
+<span><span class="co"># 23      H                           50</span></span></code></pre></div>
+<p>E.g., we want to extract genesets in C2 category and CP:KEGG sub-category:</p>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gene_sets</span> <span class="op">=</span> <span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html">msigdbr</a></span><span class="op">(</span>category <span class="op">=</span> <span class="st">"C2"</span>, subcategory <span class="op">=</span> <span class="st">"CP:KEGG"</span><span class="op">)</span></span>
+<span><span class="va">gene_sets</span></span>
+<span><span class="co"># # A tibble: 16,283 × 15</span></span>
+<span><span class="co">#    gs_cat gs_sub…¹ gs_name gene_…² entre…³ ensem…⁴ human…⁵ human…⁶ human…⁷ gs_id</span></span>
+<span><span class="co">#    &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;</span></span>
+<span><span class="co">#  1 C2     CP:KEGG  KEGG_A… ABCA1        19 ENSG00… ABCA1        19 ENSG00… M119…</span></span>
+<span><span class="co">#  2 C2     CP:KEGG  KEGG_A… ABCA10    10349 ENSG00… ABCA10    10349 ENSG00… M119…</span></span>
+<span><span class="co">#  3 C2     CP:KEGG  KEGG_A… ABCA12    26154 ENSG00… ABCA12    26154 ENSG00… M119…</span></span>
+<span><span class="co">#  4 C2     CP:KEGG  KEGG_A… ABCA13   154664 ENSG00… ABCA13   154664 ENSG00… M119…</span></span>
+<span><span class="co">#  5 C2     CP:KEGG  KEGG_A… ABCA2        20 ENSG00… ABCA2        20 ENSG00… M119…</span></span>
+<span><span class="co">#  6 C2     CP:KEGG  KEGG_A… ABCA3        21 ENSG00… ABCA3        21 ENSG00… M119…</span></span>
+<span><span class="co">#  7 C2     CP:KEGG  KEGG_A… ABCA4        24 ENSG00… ABCA4        24 ENSG00… M119…</span></span>
+<span><span class="co">#  8 C2     CP:KEGG  KEGG_A… ABCA5     23461 ENSG00… ABCA5     23461 ENSG00… M119…</span></span>
+<span><span class="co">#  9 C2     CP:KEGG  KEGG_A… ABCA6     23460 ENSG00… ABCA6     23460 ENSG00… M119…</span></span>
+<span><span class="co"># 10 C2     CP:KEGG  KEGG_A… ABCA7     10347 ENSG00… ABCA7     10347 ENSG00… M119…</span></span>
+<span><span class="co"># # … with 16,273 more rows, 5 more variables: gs_pmid &lt;chr&gt;, gs_geoid &lt;chr&gt;,</span></span>
+<span><span class="co"># #   gs_exact_source &lt;chr&gt;, gs_url &lt;chr&gt;, gs_description &lt;chr&gt;, and abbreviated</span></span>
+<span><span class="co"># #   variable names ¹​gs_subcat, ²​gene_symbol, ³​entrez_gene, ⁴​ensembl_gene,</span></span>
+<span><span class="co"># #   ⁵​human_gene_symbol, ⁶​human_entrez_gene, ⁷​human_ensembl_gene</span></span>
+<span><span class="co"># # ℹ Use `print(n = ...)` to see more rows, and `colnames()` to see all variable names</span></span></code></pre></div>
+</div>
+<div id="uniprot-keywords" class="section level2" number="3.6">
+<h2>
+<span class="header-section-number">3.6</span> UniProt keywords<a class="anchor" aria-label="anchor" href="#uniprot-keywords"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/UniProtKeywords">UniProtKeywords</a></span><span class="op">)</span></span>
+<span><span class="va">gl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/UniProtKeywords/man/load_keyword_genesets.html">load_keyword_genesets</a></span><span class="op">(</span><span class="fl">9606</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="other-databases" class="section level2" number="3.7">
+<h2>
+<span class="header-section-number">3.7</span> Other databases<a class="anchor" aria-label="anchor" href="#other-databases"><i class="fas fa-link"></i></a>
+</h2>
+<p>Other pathway databases, …</p>
+<ul>
+<li>DO</li>
+<li>Mesh</li>
+<li>pathway common</li>
+<li>other …</li>
+</ul>
+</div>
+<div id="gene-id-map" class="section level2" number="3.8">
+<h2>
+<span class="header-section-number">3.8</span> Gene ID map<a class="anchor" aria-label="anchor" href="#gene-id-map"><i class="fas fa-link"></i></a>
+</h2>
+<p>To perform gene set enrichment analysis, there are always two sources of data, one from genes and one from gene sets. Thus,
+the gene IDs in the two sources may not be the same. Thus</p>
+<p>Thanks to the Bioconductor annotation ecosystem, the <strong>org.*.eg.db</strong> family packages provide annotation sources of genes
+from various databases, take <strong>org.Hs.eg.db</strong> package as an example</p>
+<p>The second widely used package for gene ID coversion is <strong>biomart</strong> package which uses the service from ensemble biomart service.</p>
+<p>There are also helper functions implemented in packages using xxx. <code><a href="https://rdrr.io/pkg/clusterProfiler/man/bitr.html">bitr()</a></code> uses org.db packages for gene ID coversion. it returns
+a two-column data from for the mapping. However, users need to set the type of , the values can be obtained by <code>columns(org.Hs.eg.db)</code></p>
+<p>In the comparion package of this book, we have implemented a function <code>convert_to_entrez_id()</code>, which automatically recognize
+the input gene ID type and convert to Entrez ID since almost all gene set database provide genes in Entrez IDs. The function will
+be used through this book. It can recognize the following input types:</p>
+<ol style="list-style-type: decimal">
+<li>a character vector</li>
+<li>a numeric vector with gene names as names</li>
+<li>a matrix with gene names as row names.</li>
+</ol>
+<p>For the last two scenarios, if multple genes are mapped to a single Entrez ID, the corresponding elements rows are averaged.</p>
+</div>
+<div id="data-structure" class="section level2" number="3.9">
+<h2>
+<span class="header-section-number">3.9</span> Data structure<a class="anchor" aria-label="anchor" href="#data-structure"><i class="fas fa-link"></i></a>
+</h2>
+<p>Currently there is no widely-accepted standard format for general gene set representation. As has been demonstrated,
+gene sets can be represetnted as a two-column data frame where each row contains a gene in a gene set. ALternatively, which
+can be easily converted from teh two-column data frame is as a list where each element in the list is a vector of genes.</p>
+<p>In the early days of bioconductor when dealling with microarray data, there is a <strong>GSEAbase</strong> package from bioconductor core team,
+which xxx.</p>
+<p>BiocSet</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="introduction.html"><span class="header-section-number">2</span> Introduction</a></div>
+<div class="next"><a href="over-representation-analysis.html"><span class="header-section-number">4</span> Over-Representation Analysis</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#gene-set-databases"><span class="header-section-number">3</span> Gene Set Databases</a></li>
+<li><a class="nav-link" href="#overview"><span class="header-section-number">3.1</span> Overview</a></li>
+<li>
+<a class="nav-link" href="#gene-ontology"><span class="header-section-number">3.2</span> Gene Ontology</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#the-go.db-package"><span class="header-section-number">3.2.1</span> The GO.db package</a></li>
+<li><a class="nav-link" href="#link-go-terms-to-genes"><span class="header-section-number">3.2.2</span> Link GO terms to genes</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#kegg-pathways"><span class="header-section-number">3.3</span> KEGG pathways</a></li>
+<li><a class="nav-link" href="#reactome-pathways"><span class="header-section-number">3.4</span> Reactome pathways</a></li>
+<li><a class="nav-link" href="#msigdb"><span class="header-section-number">3.5</span> MSigDB</a></li>
+<li><a class="nav-link" href="#uniprot-keywords"><span class="header-section-number">3.6</span> UniProt keywords</a></li>
+<li><a class="nav-link" href="#other-databases"><span class="header-section-number">3.7</span> Other databases</a></li>
+<li><a class="nav-link" href="#gene-id-map"><span class="header-section-number">3.8</span> Gene ID map</a></li>
+<li><a class="nav-link" href="#data-structure"><span class="header-section-number">3.9</span> Data structure</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-09-01.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

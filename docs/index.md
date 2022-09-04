@@ -1,0 +1,16 @@
+--- 
+title: "Gene Set Enrichment Analysis with R and Bioconductor"
+author: "Zuguang Gu"
+date: "2022-09-01"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+# url: your book url like https://bookdown.org/yihui/bookdown
+# cover-image: path to the social sharing image like images/cover.jpg
+biblio-style: apalike
+csl: chicago-fullnote-bibliography.csl
+---
+
+# About
+
+This is a book on gene set enrichment analysis.

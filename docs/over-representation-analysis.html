@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 4 Over-Representation Analysis | Gene Set Enrichment Analysis with R and Bioconductor</title>
+<meta name="author" content="Zuguang Gu">
+<meta name="generator" content="bookdown 0.27 with bs4_book()">
+<meta property="og:title" content="Chapter 4 Over-Representation Analysis | Gene Set Enrichment Analysis with R and Bioconductor">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 4 Over-Representation Analysis | Gene Set Enrichment Analysis with R and Bioconductor">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.4.0/transition.js"></script><script src="libs/bs3compat-0.4.0/tabs.js"></script><script src="libs/bs3compat-0.4.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<meta name="description" content="4.1 Overview Over-representation analysis (ORA) uses a simplified model for gene set enrichment anlaysis. It directly works on the counts of genes in different categories, i.e., whether genes are...">
+<meta property="og:description" content="4.1 Overview Over-representation analysis (ORA) uses a simplified model for gene set enrichment anlaysis. It directly works on the counts of genes in different categories, i.e., whether genes are...">
+<meta name="twitter:description" content="4.1 Overview Over-representation analysis (ORA) uses a simplified model for gene set enrichment anlaysis. It directly works on the counts of genes in different categories, i.e., whether genes are...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Gene Set Enrichment Analysis with R and Bioconductor</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">2</span> Introduction</a></li>
+<li><a class="" href="gene-set-databases.html"><span class="header-section-number">3</span> Gene Set Databases</a></li>
+<li><a class="active" href="over-representation-analysis.html"><span class="header-section-number">4</span> Over-Representation Analysis</a></li>
+<li><a class="" href="the-gsea-method.html"><span class="header-section-number">5</span> The GSEA method</a></li>
+<li><a class="" href="gsea-framework.html"><span class="header-section-number">6</span> GSEA framework</a></li>
+<li><a class="" href="gene-set-enrichment-analysis-in-genomics.html"><span class="header-section-number">7</span> Gene Set Enrichment Analysis in Genomics</a></li>
+<li><a class="" href="topology-based-pathway-enrichmetn.html"><span class="header-section-number">8</span> Topology-based pathway enrichmetn</a></li>
+<li><a class="" href="extensions-of-gsea.html"><span class="header-section-number">9</span> Extensions of GSEA</a></li>
+<li><a class="" href="visualization.html"><span class="header-section-number">10</span> Visualization</a></li>
+<li><a class="" href="clustering-and-simplifying-gsea-results.html"><span class="header-section-number">11</span> Clustering and simplifying GSEA results</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="over-representation-analysis" class="section level1" number="4">
+<h1>
+<span class="header-section-number">4</span> Over-Representation Analysis<a class="anchor" aria-label="anchor" href="#over-representation-analysis"><i class="fas fa-link"></i></a>
+</h1>
+<div id="overview-1" class="section level2" number="4.1">
+<h2>
+<span class="header-section-number">4.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>Over-representation analysis (ORA) uses a simplified model for gene set
+enrichment anlaysis. It directly works on the counts of genes in different categories,
+i.e., whether genes are in the list of interest and whether genes are in the gene set.
+Because of its simplicity, ORA is the mostly used method for gene set enrichment analysis.
+In this chapter, we will introduce different tests for ORA and the implementations in R.
+We will also point out the limitations of ORA of which users need to be careful when they
+apply ORA on their datasets.</p>
+</div>
+<div id="what-is-over-representation" class="section level2" number="4.2">
+<h2>
+<span class="header-section-number">4.2</span> What is over-representation?<a class="anchor" aria-label="anchor" href="#what-is-over-representation"><i class="fas fa-link"></i></a>
+</h2>
+<p>In many cases, ORA is applied to a list of differentially expressed
+genes, thus, to make readers read this chapter more naturally, we use
+“differentially expressed genes” to represent the list of genes of interest. but please
+keep in mind that the differential genes is just a special case of the gene list. In applications,
+it can any kind of gene lists.</p>
+<p>For a gene denoted as <span class="math inline">\(G\)</span>, it has two attributes: whether it is differentially expressed
+(DE) and whether it belongs to a gene set. The two relations can be represented in
+a Venn Diagram (Figure @ref(fig:ora_venn)). We denote <span class="math inline">\(p_1\)</span> as the
+probability of <span class="math inline">\(G\)</span> being differentially expressed, and <span class="math inline">\(p_2\)</span> as the
+probability of <span class="math inline">\(G\)</span> being in the gene set, then we have</p>
+<p><span class="math display">\[ p_1 = n_{\mathrm{diff}}/n \]</span>
+<span class="math display">\[ p_2 = n_{\mathrm{set}}/n \]</span></p>
+<div class="inline-figure"><img src="03-ora_files/figure-html/ora_venn-1.png" width="604.8" style="display: block; margin: auto;"></div>
+<p>where <span class="math inline">\(n_{\mathrm{diff}}\)</span> is the number of DE genes, <span class="math inline">\(n_{\mathrm{set}}\)</span> is the
+number of genes in the gene set, and <span class="math inline">\(n\)</span> is the total number of genes in the
+study. Assume the two attributes of <span class="math inline">\(G\)</span> are independent, i.e., whether genes
+are DE has no preference on whether genes are in the gene set, then the
+expected number of DE genes also in the gene set is <span class="math inline">\(n p_1 p_2\)</span>. Denote the
+observed number of DE genes in the gene set as <span class="math inline">\(m\)</span>, we can calculate a ratio <span class="math inline">\(r = m/n p_1 p_2\)</span>. If there are more observed genes in the gene set than expected,
+i.e., <span class="math inline">\(r &gt; 1\)</span>, we say DE genes are over-represented in the gene set, or
+identically, we can say genes in the gene set are over-represented in DE genes. And when <span class="math inline">\(r &lt; 1\)</span>, we say DE genes are down-represented
+in the gene set.</p>
+<p>A quick calculation shows</p>
+<p><span class="math display">\[ r = \frac{m}{n p_1 p_2} = \frac{m n}{n_{\mathrm{diff}} n_{\mathrm{set}}} \]</span></p>
+<p>We can look at the problem from a slightly different aspect. We treat <span class="math inline">\(p_1\)</span> which was previously defined as
+the “background probability” of a gene being DE. We also calculate the probability
+of a genes being DE but only in the gene set, which we term it as “foreground probability” and denote it as <span class="math inline">\(p^\mathrm{fore}_1\)</span>:</p>
+<p><span class="math display">\[ p^\mathrm{fore}_1 = m/n_{\mathrm{set}} \]</span></p>
+<p>Then if the foreground probability is higher than background probability, i.e., <span class="math inline">\(p^\mathrm{fore}_1 &gt; p_1\)</span>
+or <span class="math inline">\(p^\mathrm{fore}_1 / p_1 &gt; 1\)</span>, we can say DE genes are over-represented in the gene set. It is easy to see</p>
+<p><span class="math display">\[ \frac{P'_1}{P_1} = \frac{m n}{n_{\mathrm{diff}} n_{\mathrm{set}}} \]</span>.</p>
+<p>Similarly, we can treat <span class="math inline">\(p_2\)</span> as the “background probability” of a genes being in the gene set,
+and we calculate the “foreground probability” of a gene being in the gene set, but only in the DE genes, denoted as <span class="math inline">\(p^\mathrm{fore}_2\)</span>:</p>
+<p><span class="math display">\[ p^\mathrm{fore}_2 = m/n_{\mathrm{diff}}\]</span></p>
+<p>It is easy to see <span class="math inline">\(p^\mathrm{fore}_2/p_2\)</span> is identical to <span class="math inline">\(p^\mathrm{fore}_1/p_1\)</span></p>
+<p>The score <span class="math inline">\(r\)</span> can be used to measures whether DE genes are
+over-represented in a gene set, where a higher value of <span class="math inline">\(r\)</span> implies there is stronger
+over-representation. Under the statistical procedures, we need to statistical test to calculate a p-value
+for the over-representation to assign a “signficance level” for the enrichment.
+Although <span class="math inline">\(r\)</span> is able to measure the over-representation, its distribution with analytical form is hard to obtain.
+In the next section, we introduce the
+specific distributions or statistical tests for calculating p-values.</p>
+</div>
+<div id="statistical-tests" class="section level2" number="4.3">
+<h2>
+<span class="header-section-number">4.3</span> Statistical tests<a class="anchor" aria-label="anchor" href="#statistical-tests"><i class="fas fa-link"></i></a>
+</h2>
+<div id="hypergeometric-distribution" class="section level3" number="4.3.1">
+<h3>
+<span class="header-section-number">4.3.1</span> Hypergeometric distribution<a class="anchor" aria-label="anchor" href="#hypergeometric-distribution"><i class="fas fa-link"></i></a>
+</h3>
+<p>Hypergeometric distribution is a xxx for discrete events. We will first briefly introduce the
+form of hypergenometric and then we map xxx to the ORA analysis.</p>
+<p>The problem can be formulated as follows. Assume there are <span class="math inline">\(N\)</span> balls in a bag, where there are <span class="math inline">\(K\)</span> red balls, and
+<span class="math inline">\(N - K\)</span> blue balls. If randomly picking <span class="math inline">\(n\)</span> balls without replacement from there (once a ball is picked, it will be put back), what is the probability of having <span class="math inline">\(k\)</span> red balls out of <span class="math inline">\(n\)</span> balls?</p>
+<p>Also we assume it is independent to pick any ball, then, we can have the following numbers:</p>
+<ul>
+<li>Total number of combinations of picking <span class="math inline">\(n\)</span> balls from the bag: <span class="math inline">\(\binom{N}{n}\)</span>.</li>
+<li>Number of combinations of pick <span class="math inline">\(k\)</span> red balls from <span class="math inline">\(K\)</span> red balls: <span class="math inline">\(\binom{K}{k}\)</span>.</li>
+<li>Number of combinations of picking <span class="math inline">\(n-k\)</span> blue balls from <span class="math inline">\(N-K\)</span> blue balls: <span class="math inline">\(\binom{N-K}{n-k}\)</span>.</li>
+</ul>
+<p>Since picking red balls and picking blue balls are independent, the number of combinations of picking <span class="math inline">\(n\)</span> balls which contain <span class="math inline">\(k\)</span> red
+and <span class="math inline">\(n-k\)</span> blue balls is <span class="math inline">\(\binom{K}{k} \binom{N-K}{n-k}\)</span>, and the probability denoted as <span class="math inline">\(P_{\mathrm{hyper}}\)</span> is calculated as:</p>
+<p><span class="math display">\[ P_{\mathrm{hyper}} = \frac{\binom{K}{k} \binom{N-K}{n-k}}{\binom{N}{n}}\]</span>.</p>
+<p>Let’s denote the number of red balls as a random variable <span class="math inline">\(X\)</span>, then <span class="math inline">\(X\)</span> follows the hypergenometric distribution with parameters
+<span class="math inline">\(N\)</span>, <span class="math inline">\(K\)</span> and <span class="math inline">\(n\)</span>, written as <span class="math inline">\(X \sim \mathrm{Hyper}(N, K, n)\)</span>.</p>
+<p>Now we can map to ORA analysis. Before that, we use commonly used denotations in literatures.</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th></th>
+<th>In the gene set</th>
+<th>Not in the gene set</th>
+<th>Total</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>DE genes</td>
+<td><span class="math inline">\(n_{11}\)</span></td>
+<td><span class="math inline">\(n_{12}\)</span></td>
+<td><span class="math inline">\(n_{1+}\)</span></td>
+</tr>
+<tr class="even">
+<td>Non-DE genes</td>
+<td><span class="math inline">\(n_{21}\)</span></td>
+<td><span class="math inline">\(n_{22}\)</span></td>
+<td><span class="math inline">\(n_{2+}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Total</td>
+<td><span class="math inline">\(n_{+1}\)</span></td>
+<td><span class="math inline">\(n_{+2}\)</span></td>
+<td><span class="math inline">\(n\)</span></td>
+</tr>
+</tbody>
+</table></div>
+<p>ORA basically has the same form as the ball problem. We just need to change the terms while the
+statistical model is unchanged. E.g. we change red balls to DE genes and blue balls to non-DE genes.
+balls to pick is the genes in the gene set. The full map is in Table x.</p>
+<div class="inline-table"><table class="table table-sm"><tbody>
+<tr class="odd">
+<td>Total balls</td>
+<td><span class="math inline">\(N\)</span></td>
+<td>Total genes</td>
+<td><span class="math inline">\(n\)</span></td>
+</tr>
+<tr class="even">
+<td>Red balls</td>
+<td><span class="math inline">\(K\)</span></td>
+<td>DE genes</td>
+<td><span class="math inline">\(n_{1+}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Blue balls</td>
+<td><span class="math inline">\(N-K\)</span></td>
+<td>non-DE genes</td>
+<td><span class="math inline">\(n_{2+}\)</span></td>
+</tr>
+<tr class="even">
+<td>Balls to pick</td>
+<td><span class="math inline">\(n\)</span></td>
+<td>genes in gene set</td>
+<td><span class="math inline">\(n_{+1}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Red balls that are picked</td>
+<td><span class="math inline">\(k\)</span></td>
+<td>DE genes in the gene set</td>
+<td><span class="math inline">\(n_{11}\)</span></td>
+</tr>
+<tr class="even">
+<td>Blue balls that are picked</td>
+<td><span class="math inline">\(n-k\)</span></td>
+<td>non-DE genes in the gene set</td>
+<td><span class="math inline">\(n_{21}\)</span></td>
+</tr>
+</tbody></table></div>
+<p>Specifically for ORA, denote number of DE genes in a gene set as a random variable <span class="math inline">\(X\)</span>, then</p>
+<p><span class="math display">\[ X \sim \mathrm{Hyper}(n, n_{1+}, n_{+1}) \]</span></p>
+<p>If <span class="math inline">\(n_{11}\)</span> is big, whether a gene id DE and whether a gene is in the gene set is highly dependent, or
+in other words, DE genes are over-represented in the gene set. For the random variable <span class="math inline">\(X\)</span>, the p-value
+is calculated as <span class="math inline">\(Pr(X \geq n_{11})\)</span> which is the probability of X no less than <span class="math inline">\(n_{11}\)</span>. If the p-value is
+very small, and we observed <span class="math inline">\(X = n_{11}\)</span>, we can say, a rare event happens and the p-value is signficant.</p>
+<p><span class="math display">\[ Pr( X &gt;= n_11 ) = 1 - Pr(X &lt; n_11) = 1 - \sum_{x \in {0, .., {n_11 - 1}}} p(x, n_{+1}, n_{1+}, n)\]</span></p>
+</div>
+<div id="binomial-distribution" class="section level3" number="4.3.2">
+<h3>
+<span class="header-section-number">4.3.2</span> Binomial distribution<a class="anchor" aria-label="anchor" href="#binomial-distribution"><i class="fas fa-link"></i></a>
+</h3>
+<p>When <span class="math inline">\(n_{1+}\)</span> or <span class="math inline">\(n_{+1}\)</span> or <span class="math inline">\(n\)</span> is large, the
+hypergenometric distribution can be approximated to a Binomial test. Now we
+need to change the question a little bit. Now we only look at the genes in the gene set.
+In a gene set with <span class="math inline">\(n_{+1}\)</span> genes, each gene can be a DE genes with probabilty <span class="math inline">\(p_{diff}\)</span>.
+What is the probability of observing <span class="math inline">\(n_{11}\)</span> DE genes. First <span class="math inline">\(p_{\mathrm{diff}}\)</span> is estimated as</p>
+<p><span class="math display">\[p_{\mathrm{diff}} = n_{1+}/n \]</span></p>
+<p>The probelm can be thought as pick ball <span class="math inline">\(n_{+1}\)</span> times, the number of picking <span class="math inline">\(n_{11}\)</span> balls is <span class="math inline">\(\binom{n_{+1}}{n_{11}}\)</span>.
+The probability of all <span class="math inline">\(n_{11}\)</span> balls are all DE is <span class="math inline">\(p_{\mathrm{diff}}^{n_{11}}\)</span> and the other <span class="math inline">\(n_{+1} - n_{11}\)</span> balls
+are not DE is <span class="math inline">\((1-p_{\mathrm{diff}})^{n_{+1} - n_{11}}\)</span>, then the final probability is</p>
+<p><span class="math display">\[ p =  \binom{n_{+1}}{n_{11}} p_{\mathrm{diff}}^{n_{11}} (1-p_{\mathrm{diff}})^{n_{+1} - n_{11}} \]</span></p>
+<p>If again, denote the number of DE genes in the gene set as a random variable <span class="math inline">\(X\)</span>, then <span class="math inline">\(X \sim \mathrm{Binom}(n_{+1}, p_{\mathrm{diff}})\)</span>.</p>
+<p>And p-value is calculated as <span class="math inline">\(Pr(X \geq n_{11})\)</span>.</p>
+<p>We can also do in other other direction, we look at DE genes and each gene has a probability being in the gene set.</p>
+<p><span class="math display">\[p_{\mathrm{set}} = n_{+1}/n\]</span></p>
+<p>And approximatedly, <span class="math inline">\(X \sim \mathrm{Binom}(n_{1+}, p_{\mathrm{set}})\)</span>. But note, the two p-values are not identical.</p>
+</div>
+<div id="z-test" class="section level3" number="4.3.3">
+<h3>
+<span class="header-section-number">4.3.3</span> z-test<a class="anchor" aria-label="anchor" href="#z-test"><i class="fas fa-link"></i></a>
+</h3>
+<p>Let’s look back Table xx, if the two events “genes are DE” and “gene is in the gene set” are independent, then the probability
+of a gene being DE in the gene set should be identical to the probability of a gene being DE not in the gene set, which are
+the following two probabilities:</p>
+<p><span class="math display">\[ p_1 = n_{11}/n_{+1} \]</span>
+<span class="math display">\[ P_2 = n_{12}/n_{+2} \]</span></p>
+<p>For genes in the gene set, number of DE genes actually follow a Binomilal distribution <span class="math inline">\(\mathrm{Binom}(n_{+1}, p_1)\)</span>,
+and for genes not in the gene set, number of DE genes also follow a Binomial distribution: <span class="math inline">\(\mathrm{Binom}(n_{+2}, p_2)\)</span>.
+Now the problem is to test whether the two Binomial distribution is idential. The null hypothesis is <span class="math inline">\(p_1 = p_2\)</span>, then
+when <span class="math inline">\(n_{+1}\)</span> and <span class="math inline">\(n_{+2}\)</span> are large, the following z-score:</p>
+<p><span class="math display">\[z = \frac{p_1 - p_2}{\sqrt{p(1-p)} \sqrt{\frac{1}{n_{1+}} + \frac{1}{n_{2+}}}}\]</span></p>
+<p>where <span class="math inline">\(p = \frac{n_{11}+n_{12}}{n_{+1} + n_{+2}} = \frac{n_{1+}}{n}\)</span>. <span class="math inline">\(z\)</span> follows a standard normal distribution <span class="math inline">\(N(0,1)\)</span>.</p>
+<p>It easy to see the test is idential is <span class="math inline">\(p_1\)</span> and <span class="math inline">\(p_2\)</span> are calculated as the probabilities of a genes being in
+the gene set, for DE genes and non-DE genes.</p>
+</div>
+<div id="fishers-exact-test" class="section level3" number="4.3.4">
+<h3>
+<span class="header-section-number">4.3.4</span> Fisher’s exact test<a class="anchor" aria-label="anchor" href="#fishers-exact-test"><i class="fas fa-link"></i></a>
+</h3>
+<p>Fisher’s exact test can be used to</p>
+</div>
+<div id="chi-square-test" class="section level3" number="4.3.5">
+<h3>
+<span class="header-section-number">4.3.5</span> Chi-square test<a class="anchor" aria-label="anchor" href="#chi-square-test"><i class="fas fa-link"></i></a>
+</h3>
+<p>Pearson’s Chi-square test can also be applied to test whether there are dependencies on categorized data. The Chi-square
+statistic measures the relative sum of squares of the difference between observed values and expected in categories:</p>
+<p><span class="math display">\[ \chi^2 = \sum_i \frac{ (O_i - E_i)^2 }{E_i} \]</span></p>
+<p>where <span class="math inline">\(O_i\)</span> is the observed value in category <span class="math inline">\(i\)</span> and <span class="math inline">\(E_i\)</span> is the expected value in category <span class="math inline">\(i\)</span>.</p>
+<p>If we apply it to the 2x2 contigency table, actually the data is splt into four non-intersected categories, DE/set, DE/not in set,
+non-DE/in set and non-DE/not in set. Let’s take the first category, e.g. genes are DE and also in the set,
+the observed value is simply <span class="math inline">\(n_{11}\)</span>. The expected value is <span class="math inline">\(n p_{1+} p_{+1}\)</span> which assumes whether a gene
+is DE and whether a gene is in the set is independent, where <span class="math inline">\(p_{1+} = n_{1+}/n\)</span> and <span class="math inline">\(p_{+1} = n_{+1}/n\)</span>. And if
+we write all four categories, we have</p>
+<p><span class="math display">\[ \chi^2 = \sum_{i=1}^2 \sum_{j=1}^2 \frac{(n_{ij} - n p_{i+} p_{+j})^2}{n p_{i+} p_{+j}} \]</span></p>
+<p>where <span class="math inline">\(p_{i+} = n_{i+}/n\)</span> and <span class="math inline">\(p_{+j} = n_{+j}/n\)</span>.</p>
+<p>If <span class="math inline">\(n\)</span> is large, the <span class="math inline">\(\chi^2\)</span> statistic can be approximated as followinng <span class="math inline">\(\chi^2\)</span> distribution with degree of freedom of 1.</p>
+<p>Simply calcus reveals that the value of the <span class="math inline">\(\chi^2\)</span> is the square of the z-statistic.</p>
+</div>
+</div>
+<div id="calculate-in-r" class="section level2" number="4.4">
+<h2>
+<span class="header-section-number">4.4</span> Calculate in R<a class="anchor" aria-label="anchor" href="#calculate-in-r"><i class="fas fa-link"></i></a>
+</h2>
+<p>To demonstrate the different distributions and tests, we use a data fro EBI Altas database
+with accession ID E-GEOD-101794. In the difffernetial expression analysis, there are 968
+egnes that are differential under cutoff FDR &lt; 0.05, and total number of genes are 38592, we
+use the gene set named “HALLMARK_KRAS_SIGNALING_DN” fro MsigDb database which contains 200 genes.
+The 2x2 contigency table is as follows</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th></th>
+<th>In the gene set</th>
+<th>Not in the gene set</th>
+<th>Total</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>DE</td>
+<td>14</td>
+<td>954</td>
+<td>968</td>
+</tr>
+<tr class="even">
+<td>Noe DE</td>
+<td>186</td>
+<td>37438</td>
+<td>37624</td>
+</tr>
+<tr class="odd">
+<td>Total</td>
+<td>200</td>
+<td>38392</td>
+<td>38592</td>
+</tr>
+</tbody>
+</table></div>
+<p>The function <code><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper()</a></code> calculates the p-value from hypergeometric distribution. The usage of
+<code>phyer()</code> is:</p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="va">q</span>, <span class="va">m</span>, <span class="va">n</span>, <span class="va">k</span><span class="op">)</span></span></code></pre></div>
+<p>In ORA, <code>q</code> is the number of differnetial genes in the gene set, <code>m</code> is the size of the gene set,
+<code>n</code> is the number of genes not in the gene set, <code>k</code> is the number of differnetial genes. since the hypergeometric can also be calcualted from the other dimension, <code>m</code> can be the number of differneital genes, <code>n</code> is the number of non-diff genes and <code>k</code> is the number of genes in the gene set.</p>
+<p>By default <code><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper()</a></code> calculates the probabilty of Pr(X &lt;= q)</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">14</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0005686084</span></span></code></pre></div>
+<p>Note it is the same as</p>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">14</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0005686084</span></span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">14</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">968</span>, <span class="fl">37624</span>, <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0005686084</span></span></code></pre></div>
+<p>P-value from Binominal distribution can be calcualted with the function <code><a href="https://rdrr.io/r/stats/Binomial.html">pbinom()</a></code>. The usage is</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="va">q</span>, <span class="va">size</span>, <span class="va">prob</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="fl">14</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">200</span>, <span class="fl">968</span><span class="op">/</span><span class="fl">38592</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0005919725</span></span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="fl">14</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">968</span>, <span class="fl">200</span><span class="op">/</span><span class="fl">38592</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0006924557</span></span></code></pre></div>
+<p>To calculate the z-test, we first calculate p1 and p2</p>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">=</span> <span class="fl">14</span><span class="op">/</span><span class="fl">200</span></span>
+<span><span class="va">p2</span> <span class="op">=</span> <span class="fl">954</span><span class="op">/</span><span class="fl">38392</span></span>
+<span><span class="va">p</span> <span class="op">=</span> <span class="fl">968</span><span class="op">/</span><span class="fl">38592</span></span>
+<span></span>
+<span><span class="va">z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">p1</span> <span class="op">-</span> <span class="va">p2</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">p</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">200</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">38392</span><span class="op">)</span></span></code></pre></div>
+<p>Since z follows a standard normal distribution, we can use <code><a href="https://rdrr.io/r/stats/Normal.html">pnorm()</a></code> to calcualte p-value:</p>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">2</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="va">z</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># [1] 4.647219e-05</span></span></code></pre></div>
+<p>We can also try to calculate the p-valeu from other other direction. similarly,</p>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">=</span> <span class="fl">14</span><span class="op">/</span><span class="fl">968</span></span>
+<span><span class="va">p2</span> <span class="op">=</span> <span class="fl">186</span><span class="op">/</span><span class="fl">37624</span></span>
+<span><span class="va">p</span> <span class="op">=</span> <span class="fl">200</span><span class="op">/</span><span class="fl">38592</span></span>
+<span></span>
+<span><span class="va">z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">p1</span> <span class="op">-</span> <span class="va">p2</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">p</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">968</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">37624</span><span class="op">)</span></span>
+<span><span class="fl">2</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="va">z</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># [1] 4.647219e-05</span></span></code></pre></div>
+<p>The two p-values are identical.</p>
+<p>Fisher’s exact test can be directly performed by the function <code><a href="https://rdrr.io/r/stats/fisher.test.html">fisher.test()</a></code>. The input is the 2x2 contigency table without the margins.</p>
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">186</span>, <span class="fl">954</span>, <span class="fl">37438</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">cm</span></span>
+<span><span class="co">#      [,1]  [,2]</span></span>
+<span><span class="co"># [1,]   14   954</span></span>
+<span><span class="co"># [2,]  186 37438</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/fisher.test.html">fisher.test</a></span><span class="op">(</span><span class="va">cm</span><span class="op">)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co">#   Fisher's Exact Test for Count Data</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># data:  cm</span></span>
+<span><span class="co"># p-value = 0.0005686</span></span>
+<span><span class="co"># alternative hypothesis: true odds ratio is not equal to 1</span></span>
+<span><span class="co"># 95 percent confidence interval:</span></span>
+<span><span class="co">#  1.577790 5.106564</span></span>
+<span><span class="co"># sample estimates:</span></span>
+<span><span class="co"># odds ratio </span></span>
+<span><span class="co">#   2.953612</span></span></code></pre></div>
+<p><code><a href="https://rdrr.io/r/stats/fisher.test.html">fisher.test()</a></code> generates many other results, here the odd ratio is the statistic of fisher exact test. The odd ratio is defined as</p>
+<p><span class="math display">\[ \mathrm{odd ratio} = \frac{n_{11}}{n_{21}} / \frac{n_{11}}{n_{22}} = \frac{n_{11}n_{22}}{n_{12}n_{21}} \]</span></p>
+<p>which is the ratio of fraction of DE in the gene set and not in the gene set. If odd ratio is larger than 1, over-representation.</p>
+<p>Last, the Chi-square test can be applied with the function <code><a href="https://rdrr.io/r/stats/chisq.test.html">chisq.test()</a></code>. Similarly the input is the 2x2 contigency table without the margins. Note here we also set <code>correct = FALSE</code> so that …</p>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">cm</span>, correct <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co">#   Pearson's Chi-squared test</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># data:  cm</span></span>
+<span><span class="co"># X-squared = 16.587, df = 1, p-value = 4.647e-05</span></span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">z</span><span class="op">^</span><span class="fl">2</span></span>
+<span><span class="co"># [1] 16.58685</span></span></code></pre></div>
+<p>Since there are several ways to perform the test, it would be interesting to test which method runs faster.</p>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/joshuaulrich/microbenchmark/">microbenchmark</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html">microbenchmark</a></span><span class="op">(</span></span>
+<span>    hyper <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span><span class="op">)</span>,</span>
+<span>    fisher <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/fisher.test.html">fisher.test</a></span><span class="op">(</span><span class="va">cm</span><span class="op">)</span>,</span>
+<span>    binom <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">968</span>, <span class="fl">200</span><span class="op">/</span><span class="fl">38592</span><span class="op">)</span>,</span>
+<span>    chisq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">cm</span>, correct <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>    ztest <span class="op">=</span> <span class="op">{</span></span>
+<span>        <span class="va">p1</span> <span class="op">=</span> <span class="fl">14</span><span class="op">/</span><span class="fl">200</span></span>
+<span>        <span class="va">p2</span> <span class="op">=</span> <span class="fl">954</span><span class="op">/</span><span class="fl">38392</span></span>
+<span>        <span class="va">p</span> <span class="op">=</span> <span class="fl">968</span><span class="op">/</span><span class="fl">38592</span></span>
+<span></span>
+<span>        <span class="va">z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">p1</span> <span class="op">-</span> <span class="va">p2</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">p</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">200</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">38392</span><span class="op">)</span></span>
+<span>        <span class="fl">2</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="va">z</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    times <span class="op">=</span> <span class="fl">1000</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co"># Unit: nanoseconds</span></span>
+<span><span class="co">#    expr    min       lq       mean   median       uq     max neval</span></span>
+<span><span class="co">#   hyper   1031   1516.0   2329.873   2260.0   2732.5   19968  1000</span></span>
+<span><span class="co">#  fisher 540446 598454.5 758361.569 673342.0 766916.0 9210045  1000</span></span>
+<span><span class="co">#   binom    892   1378.0   2464.715   2211.5   2911.5   17332  1000</span></span>
+<span><span class="co">#   chisq  41682  54386.5  65848.841  60956.5  72679.0  220583  1000</span></span>
+<span><span class="co">#   ztest   1972   3069.5   4950.159   4497.0   5584.0   47668  1000</span></span></code></pre></div>
+<p>We can see from the benchmark result, hypergeometric and bionimal distribution-based method are the fastest. As a comparison,
+Chi-square test and fisher’s method run slow, especially for fisher’s exact method. The reason is the latter two also include
+many other calculations besides p-values. This benchmark results actually tells us, if in the future readers want to implement
+ORA analysis by their own, hypergeometric and bimonial methods should be considered firstly.</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th>Method</th>
+<th>p-value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Hypergeometric distribution</td>
+<td>0.0005686 (exact p-value)</td>
+</tr>
+<tr class="even">
+<td>Fisher’s exact test</td>
+<td>0.0005686 (exact p-value)</td>
+</tr>
+<tr class="odd">
+<td>Binomial distribution</td>
+<td>0.0005920 / 0.0006924</td>
+</tr>
+<tr class="even">
+<td>z-test</td>
+<td>0.0000465</td>
+</tr>
+<tr class="odd">
+<td>Chi-square test</td>
+<td>0.0000465</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div id="current-tools" class="section level2" number="4.5">
+<h2>
+<span class="header-section-number">4.5</span> Current tools<a class="anchor" aria-label="anchor" href="#current-tools"><i class="fas fa-link"></i></a>
+</h2>
+<p>There are many tools that implement ORA analysis compared to other gene set enrichment analysis tools which will
+introduced in later chapters, mainly because it runs fast, the method is simply to understand. All most all the ORA
+web-based tools are in a two-step analysis. 1. upload the gene lists and setting parameters and 2. see the results.
+In this section, we will go through three web-based ORA tools, as well as one Bioconductor package.</p>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"data/demo_ora.RData"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yulab-smu.top/biomedical-knowledge-mining-book/">clusterProfiler</a></span><span class="op">)</span></span></code></pre></div>
+<p><strong>You need to make sure the gene IDs are Entrez IDs.</strong> The following function
+helps to automatically convert gene IDs to Entrez IDs. The input can be a vector
+of genes or a gene expression matrix.</p>
+<p>We convert the diff genes <code>diff_gene</code> to Entrez IDs. Note some genes are lost
+due to the conversion.</p>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">diff_gene</span><span class="op">)</span></span>
+<span><span class="co"># [1] "FGR"    "NIPAL3" "LAP3"   "CASP10"</span></span>
+<span><span class="va">diff_gene</span> <span class="op">=</span> <span class="fu">convert_to_entrez_id</span><span class="op">(</span><span class="va">diff_gene</span><span class="op">)</span></span>
+<span><span class="co"># testing org.Hs.egENSEMBL...</span></span>
+<span><span class="co"># testing org.Hs.egREFSEQ...</span></span>
+<span><span class="co"># testing org.Hs.egSYMBOL...</span></span>
+<span><span class="co">#   gene id might be SYMBOL (p = 1.000)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">diff_gene</span><span class="op">)</span></span>
+<span><span class="co"># [1] "2268"  "57185" "51056" "843"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">diff_gene</span><span class="op">)</span></span>
+<span><span class="co"># [1] 963</span></span></code></pre></div>
+<p>Next we perform ORA on different gene sets</p>
+<ol style="list-style-type: decimal">
+<li>GO enrichment</li>
+</ol>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">org.Hs.eg.db</span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/clusterProfiler/man/enrichGO.html">enrichGO</a></span><span class="op">(</span>gene <span class="op">=</span> <span class="va">diff_gene</span>, ont <span class="op">=</span> <span class="st">"BP"</span>, OrgDb <span class="op">=</span> <span class="va">org.Hs.eg.db</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#                    ID                   Description GeneRatio   BgRatio</span></span>
+<span><span class="co"># GO:0006959 GO:0006959       humoral immune response    70/849 317/18800</span></span>
+<span><span class="co"># GO:0002443 GO:0002443   leukocyte mediated immunity    80/849 457/18800</span></span>
+<span><span class="co"># GO:0002253 GO:0002253 activation of immune response    73/849 386/18800</span></span>
+<span><span class="co"># GO:0006909 GO:0006909                  phagocytosis    65/849 310/18800</span></span>
+<span><span class="co">#                  pvalue     p.adjust       qvalue</span></span>
+<span><span class="co"># GO:0006959 3.286195e-29 1.664786e-25 1.327969e-25</span></span>
+<span><span class="co"># GO:0002443 4.867621e-26 9.919090e-23 7.912271e-23</span></span>
+<span><span class="co"># GO:0002253 5.873918e-26 9.919090e-23 7.912271e-23</span></span>
+<span><span class="co"># GO:0006909 7.862052e-26 9.957289e-23 7.942741e-23</span></span>
+<span><span class="co">#                                                                                      geneID</span></span>
+<span><span class="co"># GO:0006959 6556/729/2920/2219/4069/54209/730249/6347/3458/5967/729230/722/725/5266/6590/5..</span></span>
+<span><span class="co"># GO:0002443 2268/4843/7305/57823/729/50943/7037/3383/54209/50487/51311/10312/57379/10384/8..</span></span>
+<span><span class="co"># GO:0002253 2268/7305/11119/729/50943/2219/58484/54209/3055/80381/10384/2633/8013/722/725/..</span></span>
+<span><span class="co"># GO:0006909 2268/23221/7305/6556/2219/54209/10326/3055/1089/6347/3458/4688/729230/722/725/..</span></span>
+<span><span class="co">#            Count</span></span>
+<span><span class="co"># GO:0006959    70</span></span>
+<span><span class="co"># GO:0002443    80</span></span>
+<span><span class="co"># GO:0002253    73</span></span>
+<span><span class="co"># GO:0006909    65</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>KEGG enrichment</li>
+</ol>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/clusterProfiler/man/enrichKEGG.html">enrichKEGG</a></span><span class="op">(</span>gene <span class="op">=</span> <span class="va">diff_gene</span>, organism <span class="op">=</span> <span class="st">"hsa"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#                ID                                                   Description</span></span>
+<span><span class="co"># hsa04060 hsa04060                        Cytokine-cytokine receptor interaction</span></span>
+<span><span class="co"># hsa04061 hsa04061 Viral protein interaction with cytokine and cytokine receptor</span></span>
+<span><span class="co"># hsa04657 hsa04657                                       IL-17 signaling pathway</span></span>
+<span><span class="co"># hsa04380 hsa04380                                    Osteoclast differentiation</span></span>
+<span><span class="co">#          GeneRatio  BgRatio       pvalue     p.adjust       qvalue</span></span>
+<span><span class="co"># hsa04060    50/444 295/8163 2.729086e-13 8.432876e-11 7.382896e-11</span></span>
+<span><span class="co"># hsa04061    27/444 100/8163 1.587721e-12 2.453029e-10 2.147601e-10</span></span>
+<span><span class="co"># hsa04657    25/444  94/8163 1.564758e-11 1.611701e-09 1.411027e-09</span></span>
+<span><span class="co"># hsa04380    29/444 128/8163 2.724722e-11 2.104848e-09 1.842773e-09</span></span>
+<span><span class="co">#                                                                                    geneID</span></span>
+<span><span class="co"># hsa04060 53832/608/2920/3595/3589/5008/1440/6354/6347/55801/3458/3552/7850/9173/8809/88..</span></span>
+<span><span class="co"># hsa04061 53832/2920/6354/6347/8809/8807/729230/6372/51554/3569/4283/56477/3577/2921/637..</span></span>
+<span><span class="co"># hsa04657 5743/2920/1440/6354/6347/3458/727897/6372/3553/2354/3569/4322/6279/3934/4314/6..</span></span>
+<span><span class="co"># hsa04380 7305/54209/10326/54/11024/3458/3552/6772/2274/4688/8503/3553/2354/10288/7006/2..</span></span>
+<span><span class="co">#          Count</span></span>
+<span><span class="co"># hsa04060    50</span></span>
+<span><span class="co"># hsa04061    27</span></span>
+<span><span class="co"># hsa04657    25</span></span>
+<span><span class="co"># hsa04380    29</span></span></code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li>Reactome enrichment</li>
+</ol>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yulab-smu.top/biomedical-knowledge-mining-book/">ReactomePA</a></span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/ReactomePA/man/enrichPathway.html">enrichPathway</a></span><span class="op">(</span>gene <span class="op">=</span> <span class="va">diff_gene</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#                          ID                         Description GeneRatio</span></span>
+<span><span class="co"># R-HSA-6798695 R-HSA-6798695            Neutrophil degranulation    72/591</span></span>
+<span><span class="co"># R-HSA-6783783 R-HSA-6783783            Interleukin-10 signaling    21/591</span></span>
+<span><span class="co"># R-HSA-380108   R-HSA-380108 Chemokine receptors bind chemokines    22/591</span></span>
+<span><span class="co"># R-HSA-449147   R-HSA-449147           Signaling by Interleukins    64/591</span></span>
+<span><span class="co">#                 BgRatio       pvalue     p.adjust       qvalue</span></span>
+<span><span class="co"># R-HSA-6798695 482/10891 1.650320e-15 1.823604e-12 1.735442e-12</span></span>
+<span><span class="co"># R-HSA-6783783  47/10891 6.254910e-15 3.455838e-12 3.288766e-12</span></span>
+<span><span class="co"># R-HSA-380108   59/10891 1.330760e-13 4.901632e-11 4.664664e-11</span></span>
+<span><span class="co"># R-HSA-449147  473/10891 6.856512e-12 1.894111e-09 1.802541e-09</span></span>
+<span><span class="co">#                                                                                         geneID</span></span>
+<span><span class="co"># R-HSA-6798695 2268/64386/5329/7305/55/6556/2219/4680/4069/5836/10326/10562/3614/10493/10312/..</span></span>
+<span><span class="co"># R-HSA-6783783 5743/2920/3383/7076/1440/6347/942/3552/7850/729230/3553/3569/3557/2919/3627/57..</span></span>
+<span><span class="co"># R-HSA-380108  2920/6354/6347/729230/6372/51554/4283/56477/58191/3577/2921/6374/5196/2919/362..</span></span>
+<span><span class="co"># R-HSA-449147  4843/53832/3082/6196/5743/2920/3595/3383/3589/5008/3055/7076/1440/6347/595/558..</span></span>
+<span><span class="co">#               Count</span></span>
+<span><span class="co"># R-HSA-6798695    72</span></span>
+<span><span class="co"># R-HSA-6783783    21</span></span>
+<span><span class="co"># R-HSA-380108     22</span></span>
+<span><span class="co"># R-HSA-449147     64</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li>DO enrichment</li>
+</ol>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yulab-smu.top/biomedical-knowledge-mining-book/">DOSE</a></span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/DOSE/man/enrichDO.html">enrichDO</a></span><span class="op">(</span>gene <span class="op">=</span> <span class="va">diff_gene</span>, ont <span class="op">=</span> <span class="st">"DO"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#                  ID         Description GeneRatio  BgRatio       pvalue</span></span>
+<span><span class="co"># DOID:403   DOID:403       mouth disease    52/504 188/8007 9.623979e-21</span></span>
+<span><span class="co"># DOID:3388 DOID:3388 periodontal disease    44/504 139/8007 3.169110e-20</span></span>
+<span><span class="co"># DOID:1091 DOID:1091       tooth disease    47/504 162/8007 8.987014e-20</span></span>
+<span><span class="co"># DOID:850   DOID:850        lung disease    85/504 499/8007 3.419382e-18</span></span>
+<span><span class="co">#               p.adjust       qvalue</span></span>
+<span><span class="co"># DOID:403  7.574072e-18 3.717895e-18</span></span>
+<span><span class="co"># DOID:3388 1.247045e-17 6.121386e-18</span></span>
+<span><span class="co"># DOID:1091 2.357593e-17 1.157275e-17</span></span>
+<span><span class="co"># DOID:850  6.727633e-16 3.302403e-16</span></span>
+<span><span class="co">#                                                                                     geneID</span></span>
+<span><span class="co"># DOID:403  4843/6401/3082/50943/5743/3595/5243/4069/3589/5008/7076/4210/5054/9126/6354/63..</span></span>
+<span><span class="co"># DOID:3388 4843/6401/3082/50943/5743/3595/5243/4069/3589/5008/7076/5054/9126/6354/6347/34..</span></span>
+<span><span class="co"># DOID:1091 4843/6401/3082/50943/5743/3595/5243/4069/3589/5008/7076/5054/9126/6354/6347/54..</span></span>
+<span><span class="co"># DOID:850  4843/5329/6556/3082/50943/5743/3383/3589/3055/5054/6347/374/595/7450/59341/345..</span></span>
+<span><span class="co">#           Count</span></span>
+<span><span class="co"># DOID:403     52</span></span>
+<span><span class="co"># DOID:3388    44</span></span>
+<span><span class="co"># DOID:1091    47</span></span>
+<span><span class="co"># DOID:850     85</span></span></code></pre></div>
+<ol start="5" style="list-style-type: decimal">
+<li>MSigDB enrichment</li>
+</ol>
+<p>There is no built-in function specific for MSigDB gene sets, but there is a universal function <code>enrichr()</code> which accepts
+manually-specified gene sets. The gene sets object is simply a two-column data frame:</p>
+<ul>
+<li>the first column is the gene set ID</li>
+<li>the second column is the gene ID</li>
+</ul>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igordot.github.io/msigdbr/">msigdbr</a></span><span class="op">)</span></span>
+<span><span class="va">gene_sets</span> <span class="op">=</span> <span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html">msigdbr</a></span><span class="op">(</span>category <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span></span>
+<span><span class="va">map</span> <span class="op">=</span> <span class="va">gene_sets</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"gs_name"</span>, <span class="st">"entrez_gene"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/clusterProfiler/man/enricher.html">enricher</a></span><span class="op">(</span>gene <span class="op">=</span> <span class="va">diff_gene</span>, TERM2GENE <span class="op">=</span> <span class="va">map</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tb</span><span class="op">)</span></span>
+<span><span class="co">#                                                                    ID</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_GAMMA_RESPONSE HALLMARK_INTERFERON_GAMMA_RESPONSE</span></span>
+<span><span class="co"># HALLMARK_INFLAMMATORY_RESPONSE         HALLMARK_INFLAMMATORY_RESPONSE</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_ALPHA_RESPONSE HALLMARK_INTERFERON_ALPHA_RESPONSE</span></span>
+<span><span class="co"># HALLMARK_TNFA_SIGNALING_VIA_NFKB     HALLMARK_TNFA_SIGNALING_VIA_NFKB</span></span>
+<span><span class="co">#                                                           Description GeneRatio</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_GAMMA_RESPONSE HALLMARK_INTERFERON_GAMMA_RESPONSE    55/348</span></span>
+<span><span class="co"># HALLMARK_INFLAMMATORY_RESPONSE         HALLMARK_INFLAMMATORY_RESPONSE    54/348</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_ALPHA_RESPONSE HALLMARK_INTERFERON_ALPHA_RESPONSE    33/348</span></span>
+<span><span class="co"># HALLMARK_TNFA_SIGNALING_VIA_NFKB     HALLMARK_TNFA_SIGNALING_VIA_NFKB    49/348</span></span>
+<span><span class="co">#                                     BgRatio       pvalue     p.adjust</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_GAMMA_RESPONSE 200/4383 1.471098e-17 6.914161e-16</span></span>
+<span><span class="co"># HALLMARK_INFLAMMATORY_RESPONSE     200/4383 7.383369e-17 1.735092e-15</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_ALPHA_RESPONSE  97/4383 9.355985e-14 1.465771e-12</span></span>
+<span><span class="co"># HALLMARK_TNFA_SIGNALING_VIA_NFKB   200/4383 1.524722e-13 1.791549e-12</span></span>
+<span><span class="co">#                                          qvalue</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_GAMMA_RESPONSE 5.264982e-16</span></span>
+<span><span class="co"># HALLMARK_INFLAMMATORY_RESPONSE     1.321234e-15</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_ALPHA_RESPONSE 1.116153e-12</span></span>
+<span><span class="co"># HALLMARK_TNFA_SIGNALING_VIA_NFKB   1.364225e-12</span></span>
+<span><span class="co">#                                                                                                              geneID</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_GAMMA_RESPONSE 51056/57823/10797/3430/5743/3383/10135/6354/6347/6648/942/6772/29126/7130/8103..</span></span>
+<span><span class="co"># HALLMARK_INFLAMMATORY_RESPONSE     6401/5329/2769/490/3383/5008/7076/4210/366/3249/6324/10135/3696/5054/1440/6354..</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_ALPHA_RESPONSE 51056/3430/135112/3659/6737/94240/8638/10906/2766/834/10561/83666/7453/10410/8..</span></span>
+<span><span class="co"># HALLMARK_TNFA_SIGNALING_VIA_NFKB   5329/490/5743/2920/3383/10135/5054/6347/374/595/6648/1839/3552/5341/8013/1958/..</span></span>
+<span><span class="co">#                                    Count</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_GAMMA_RESPONSE    55</span></span>
+<span><span class="co"># HALLMARK_INFLAMMATORY_RESPONSE        54</span></span>
+<span><span class="co"># HALLMARK_INTERFERON_ALPHA_RESPONSE    33</span></span>
+<span><span class="co"># HALLMARK_TNFA_SIGNALING_VIA_NFKB      49</span></span></code></pre></div>
+</div>
+<div id="limitations-of-ora" class="section level2" number="4.6">
+<h2>
+<span class="header-section-number">4.6</span> Limitations of ORA<a class="anchor" aria-label="anchor" href="#limitations-of-ora"><i class="fas fa-link"></i></a>
+</h2>
+<p>ORA analysis is simply and it runs fast. Thus, currently, there are many online tools support it. However, there are many limiations.</p>
+<div id="different-tools-generate-inconsistent-results" class="section level3" number="4.6.1">
+<h3>
+<span class="header-section-number">4.6.1</span> different tools generate inconsistent results<a class="anchor" aria-label="anchor" href="#different-tools-generate-inconsistent-results"><i class="fas fa-link"></i></a>
+</h3>
+<p>There are a lot of tools, but using the same gene set database, results from tools
+normally do not agree very well. The reasons are:</p>
+<ol style="list-style-type: decimal">
+<li>Different versions of annotation databases.</li>
+<li>How they process redundant terms</li>
+<li>Different default cutoffs</li>
+<li>Different methodd for control p-values</li>
+<li>differnet background genes.</li>
+</ol>
+</div>
+<div id="sensitive-to-the-selection-of-background-genes." class="section level3" number="4.6.2">
+<h3>
+<span class="header-section-number">4.6.2</span> sensitive to the selection of background genes.<a class="anchor" aria-label="anchor" href="#sensitive-to-the-selection-of-background-genes."><i class="fas fa-link"></i></a>
+</h3>
+<p>Genome / all protein-coding gene / all genes measured?
+The selection mainly affects the value in the blue cells.
+Note the ORA actually compares diff gene in the set to the ‘other gene,’ and we actually assume ‘other genes’ are not diff nor in the set, thus, “other genes” are not useless.
+Select a “large” background may increase false positives.
+Select a “small” background may miss some positives, but it has low false positives.
+Also some arguments: If genes are not measured, they should not be put into the analysis.</p>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0005686084</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span> <span class="op">-</span> <span class="fl">10000</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.008444096</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span> <span class="op">-</span> <span class="fl">20000</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.1606062</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span> <span class="op">+</span> <span class="fl">10000</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 5.473547e-05</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span> <span class="op">+</span> <span class="fl">20000</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 7.140953e-06</span></span></code></pre></div>
+<p>In general, with larger background set, the p-value becomes significant. ORA</p>
+</div>
+<div id="preference-of-larger-gene-sets" class="section level3" number="4.6.3">
+<h3>
+<span class="header-section-number">4.6.3</span> Preference of larger gene sets<a class="anchor" aria-label="anchor" href="#preference-of-larger-gene-sets"><i class="fas fa-link"></i></a>
+</h3>
+<p>There is a trend that large gene sets may have more significant p-values.
+This is actually expected because as the sample size increases, the test power also increases. Under the context of hypergeometric test or Binomial test, number of genes is the “sample size.”</p>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="fl">52</span>, <span class="fl">100</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.3086497</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="fl">52</span>, <span class="fl">1000</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="co"># [1] 1</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="fl">52</span>, <span class="fl">10000</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="co"># [1] 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"data/david_result.txt"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">tb</span><span class="op">$</span><span class="va">Pop.Hits</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">tb</span><span class="op">$</span><span class="va">PValue</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"Gene set size"</span>, ylab <span class="op">=</span> <span class="st">"-log10(p-value)"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="03-ora_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;"></div>
+</div>
+<div id="imbalanced-contigency-table" class="section level3" number="4.6.4">
+<h3>
+<span class="header-section-number">4.6.4</span> Imbalanced contigency table<a class="anchor" aria-label="anchor" href="#imbalanced-contigency-table"><i class="fas fa-link"></i></a>
+</h3>
+<p>In real-world scenario, as show in xx. There are many gene sets with small number of genes,
+which makes the 2x2 contigency imbalanced.</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.newpage.html">grid.newpage</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">pushViewport</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grid/viewport.html">viewport</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, width <span class="op">=</span> <span class="fl">0.5</span>, just <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">pushViewport</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grid/viewport.html">viewport</a></span><span class="op">(</span>xscale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span><span class="op">)</span>, yscale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.9</span>, height <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.circle.html">grid.circle</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">-</span><span class="fl">0.4</span>, y <span class="op">=</span> <span class="fl">0</span>, r <span class="op">=</span> <span class="fl">1</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.circle.html">grid.circle</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0.4</span>, y <span class="op">=</span> <span class="fl">0</span>, r <span class="op">=</span> <span class="fl">1</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"gene set"</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, just <span class="op">=</span> <span class="st">"top"</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"DE genes"</span>, x <span class="op">=</span> <span class="fl">0.5</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, just <span class="op">=</span> <span class="st">"top"</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"Theretical"</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">1.4</span>, y <span class="op">=</span> <span class="fl">1.4</span>, default.units <span class="op">=</span> <span class="st">"native"</span>, just <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"top"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">popViewport</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">popViewport</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">pushViewport</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grid/viewport.html">viewport</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.5</span>, just <span class="op">=</span> <span class="st">"left"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">pushViewport</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grid/viewport.html">viewport</a></span><span class="op">(</span>xscale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span><span class="op">)</span>, yscale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.9</span>, height <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.circle.html">grid.circle</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">-</span><span class="fl">0.75</span>, y <span class="op">=</span> <span class="fl">0</span>, r <span class="op">=</span> <span class="fl">0.3</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.circle.html">grid.circle</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0.3</span>, y <span class="op">=</span> <span class="fl">0</span>, r <span class="op">=</span> <span class="fl">1.2</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"gene set"</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">0.8</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, just <span class="op">=</span> <span class="st">"top"</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"DE genes"</span>, x <span class="op">=</span> <span class="fl">0.9</span>, y <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, just <span class="op">=</span> <span class="st">"top"</span>, default.units <span class="op">=</span> <span class="st">"native"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"Real-world"</span>, x <span class="op">=</span> <span class="op">-</span><span class="fl">1.4</span>, y <span class="op">=</span> <span class="fl">1.4</span>, default.units <span class="op">=</span> <span class="st">"native"</span>, just <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"top"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">popViewport</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/viewports.html">popViewport</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="03-ora_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;"></div>
+<p>In many cases when the gene set is small, the enrichment anlaysis will be sensitive to the value of number of
+DE genes in the gene set, i.e., the valeu of <span class="math inline">\(n_{11}\)</span>.</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.0005686084</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span> <span class="op">-</span> <span class="fl">3</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.01263274</span></span>
+<span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Hypergeometric.html">phyper</a></span><span class="op">(</span><span class="fl">13</span> <span class="op">+</span> <span class="fl">3</span>, <span class="fl">200</span>, <span class="fl">38392</span>, <span class="fl">968</span><span class="op">)</span></span>
+<span><span class="co"># [1] 1.35041e-05</span></span></code></pre></div>
+<p>In DE analysis, normally we set a cutoff of adjusted p-values for filter the significant DE genes, since
+the p-values are sensitive to <span class="math inline">\(n_{11}\)</span>, actually xxx</p>
+</div>
+<div id="theoretical-reasons" class="section level3" number="4.6.5">
+<h3>
+<span class="header-section-number">4.6.5</span> Theoretical reasons<a class="anchor" aria-label="anchor" href="#theoretical-reasons"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>the assumption</li>
+</ol>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="gene-set-databases.html"><span class="header-section-number">3</span> Gene Set Databases</a></div>
+<div class="next"><a href="the-gsea-method.html"><span class="header-section-number">5</span> The GSEA method</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#over-representation-analysis"><span class="header-section-number">4</span> Over-Representation Analysis</a></li>
+<li><a class="nav-link" href="#overview-1"><span class="header-section-number">4.1</span> Overview</a></li>
+<li><a class="nav-link" href="#what-is-over-representation"><span class="header-section-number">4.2</span> What is over-representation?</a></li>
+<li>
+<a class="nav-link" href="#statistical-tests"><span class="header-section-number">4.3</span> Statistical tests</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#hypergeometric-distribution"><span class="header-section-number">4.3.1</span> Hypergeometric distribution</a></li>
+<li><a class="nav-link" href="#binomial-distribution"><span class="header-section-number">4.3.2</span> Binomial distribution</a></li>
+<li><a class="nav-link" href="#z-test"><span class="header-section-number">4.3.3</span> z-test</a></li>
+<li><a class="nav-link" href="#fishers-exact-test"><span class="header-section-number">4.3.4</span> Fisher’s exact test</a></li>
+<li><a class="nav-link" href="#chi-square-test"><span class="header-section-number">4.3.5</span> Chi-square test</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#calculate-in-r"><span class="header-section-number">4.4</span> Calculate in R</a></li>
+<li><a class="nav-link" href="#current-tools"><span class="header-section-number">4.5</span> Current tools</a></li>
+<li>
+<a class="nav-link" href="#limitations-of-ora"><span class="header-section-number">4.6</span> Limitations of ORA</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#different-tools-generate-inconsistent-results"><span class="header-section-number">4.6.1</span> different tools generate inconsistent results</a></li>
+<li><a class="nav-link" href="#sensitive-to-the-selection-of-background-genes."><span class="header-section-number">4.6.2</span> sensitive to the selection of background genes.</a></li>
+<li><a class="nav-link" href="#preference-of-larger-gene-sets"><span class="header-section-number">4.6.3</span> Preference of larger gene sets</a></li>
+<li><a class="nav-link" href="#imbalanced-contigency-table"><span class="header-section-number">4.6.4</span> Imbalanced contigency table</a></li>
+<li><a class="nav-link" href="#theoretical-reasons"><span class="header-section-number">4.6.5</span> Theoretical reasons</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-09-01.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
