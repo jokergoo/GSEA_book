@@ -18,6 +18,7 @@
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
+<link rel="stylesheet" href="style.css">
 <meta name="description" content="7.1 Overview Given a list of genomic regions, what are the biological functions they relate. A nature solution is to first annotate genomic regions to the nearest TSS, then only use genes with a...">
 <meta property="og:description" content="7.1 Overview Given a list of genomic regions, what are the biological functions they relate. A nature solution is to first annotate genomic regions to the nearest TSS, then only use genes with a...">
 <meta name="twitter:description" content="7.1 Overview Given a list of genomic regions, what are the biological functions they relate. A nature solution is to first annotate genomic regions to the nearest TSS, then only use genes with a...">
@@ -56,7 +57,7 @@
 </ul>
 
         <div class="book-extra">
-          
+          <p><a id="book-repo" href="https://github.com/jokergoo/GSEA_book">View book source <i class="fab fa-github"></i></a></p>
         </div>
       </nav>
 </div>
@@ -68,38 +69,109 @@
 <h2>
 <span class="header-section-number">7.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview-4"><i class="fas fa-link"></i></a>
 </h2>
-<p>Given a list of genomic regions, what are the biological functions they relate. A nature solution is to first annotate
-genomic regions to the nearest TSS, then only use genes with a certain distance for ORA analysis. In this chapter, we will
-discuss the problems of directly apply ORA on genomic data and the solutions.</p>
+<p>Given a list of genomic regions, what are the biological functions they
+relate. A nature solution is to first annotate genomic regions to the nearest
+TSS, then only use genes with a certain distance for ORA analysis. In this
+chapter, we will discuss the problems of directly apply ORA on genomic data
+and the solutions.</p>
 </div>
 <div id="the-great-method" class="section level2" number="7.2">
 <h2>
 <span class="header-section-number">7.2</span> The GREAT method<a class="anchor" aria-label="anchor" href="#the-great-method"><i class="fas fa-link"></i></a>
 </h2>
+<p>Genomics and epigenomics studies always generate lists of genomic regions of interests. For example, whole genome sequencing or whole exon sequencing generate lists of SNVs or Indels. ChIPseq generates list of peaks regions when certain histone signals are enriched there. Whole genome bisultite sequencing data generates diffefrentially methylated regions, or by the methylation level, it generates lowly-methylated or partially methylated domains. All the analysis will go to the next step, which is what biological functions are assoicated to these regions. This related to the biologycal meaning of the xxx. Since functional enrichment is on genes in gene sets, a natural way to answer these questions is to link genomic regions to genes, by looking for the nearest genes of gene regions, which is to apply the mapping regions -&gt; genes, for a list of regions, to have a list of associated genes. Then ORA can be applied to test the enrichment of genes asspciated to the regions and genes in teh background (which is all genes in the genome).</p>
+<p>This conversion is very straightforward, however, let’s recall the null assumption of ORA. In ORA, genes are treated as balls and all genes have the same probability and independently to be picked. However, in the mapping from regions to genes, the mapping from regions to genes are not balanced. Let’s go back to the regions, actually, we assume, in the null hypotheiss, genomic regions are distrbuted uniformly in the genome, when converting to genes, due to somes regions locate in the gene desert and some reginos locates close to genes, this results in genes are not assigned wth the same probability to be picked. For exampe, if there is a clusters of regions close to a gene, then this genes is more likely to be picked. thus genes are with different weights. All these violates the null assumption of ORA. And such inproper comvertion will produce false positive results.</p>
+<p>Recall the straighgy we proposed is to convert regions to genes, since it is not proper in the region to gene step, the tool GREAT proposes to directly constrcut region sets, which is a list of regions that associated to a biological term, then apply enrichment tests of input regions on the region set. This solves xxx. In the following sections, I will first intruduce how to construct such region sets and the enrichment tests.</p>
+<div id="construct-region-sets" class="section level3" number="7.2.1">
+<h3>
+<span class="header-section-number">7.2.1</span> Construct region sets<a class="anchor" aria-label="anchor" href="#construct-region-sets"><i class="fas fa-link"></i></a>
+</h3>
+<p>For a gene set, GREAT directly constructs such “region sets” (or genomic domains) that associate with individual biological functions. In GREAT, there are three modes of linking regions to genes</p>
+<ol style="list-style-type: decimal">
+<li><p>Basal plus extension</p></li>
+<li><p>Two nearest genes</p></li>
+<li><p>single nearest gene</p></li>
+</ol>
 </div>
-<div id="the-rgreat-package" class="section level2" number="7.3">
+<div id="the-binomial-model" class="section level3" number="7.2.2">
+<h3>
+<span class="header-section-number">7.2.2</span> The binomial model<a class="anchor" aria-label="anchor" href="#the-binomial-model"><i class="fas fa-link"></i></a>
+</h3>
+<p>The enrichment test is applied as follows. For a specific biological term represented as a gene set, denote the fraction of its associated functional domains in the genome (Fig. 1C) as p, the total number of input regions as N, the observed number of input regions that fall in the associated domains as n and the corresponding random variable as X, then X follows a binomial distribution: X ~ B(p, N) and the p-value of the enrichment is calculated as Pr(X ≥ n)</p>
+<p>Note in GREAT, input regions are treated as single points and their middle points are used.</p>
+</div>
+<div id="the-hypergeometric-model-when-dealing-with-background" class="section level3" number="7.2.3">
+<h3>
+<span class="header-section-number">7.2.3</span> The hypergeometric model when dealing with background<a class="anchor" aria-label="anchor" href="#the-hypergeometric-model-when-dealing-with-background"><i class="fas fa-link"></i></a>
+</h3>
+<p>GREAT also supports background. Here the “background” is more like a universal sets or a super sets of input regions.</p>
+</div>
+<div id="implementation" class="section level3" number="7.2.4">
+<h3>
+<span class="header-section-number">7.2.4</span> implementation<a class="anchor" aria-label="anchor" href="#implementation"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb174"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/rGREAT">rGREAT</a></span><span class="op">)</span></span>
+<span><span class="va">gr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/randomRegions.html">randomRegions</a></span><span class="op">(</span>genome <span class="op">=</span> <span class="st">"hg19"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">TxDb.Hsapiens.UCSC.hg19.knownGene</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/GenomicFeatures/man/transcripts.html">genes</a></span><span class="op">(</span><span class="va">TxDb.Hsapiens.UCSC.hg19.knownGene</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">=</span> <span class="va">g</span><span class="op">[</span><span class="fu">seqnames</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"chr"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">22</span>, <span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">all_chr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"chr"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">22</span>, <span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">seqlevels</span><span class="op">(</span><span class="va">gr</span><span class="op">)</span> <span class="op">=</span> <span class="va">all_chr</span></span>
+<span><span class="fu">seqlevels</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">=</span> <span class="va">all_chr</span></span>
+<span></span>
+<span><span class="va">extended_tss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/extendTSS.html">extendTSS</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">gs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/Bimap-envirAPI.html">sample</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">gene_id</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">region_set</span> <span class="op">=</span> <span class="va">extended_tss</span><span class="op">[</span><span class="va">extended_tss</span><span class="op">$</span><span class="va">gene_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">gs</span><span class="op">]</span></span>
+<span><span class="va">region_set</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/inter-range-methods.html">reduce</a></span><span class="op">(</span><span class="va">region_set</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">gr_mid</span> <span class="op">=</span> <span class="va">gr</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/start.html">start</a></span><span class="op">(</span><span class="va">gr_mid</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/start.html">end</a></span><span class="op">(</span><span class="va">gr_mid</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/IPosRanges-class.html">mid</a></span><span class="op">(</span><span class="va">gr</span><span class="op">)</span></span>
+<span><span class="va">ov</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/findOverlaps-methods.html">findOverlaps</a></span><span class="op">(</span><span class="va">gr_mid</span>, <span class="va">region_set</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">n_total</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">gr</span><span class="op">)</span></span>
+<span><span class="va">prop</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/start.html">width</a></span><span class="op">(</span><span class="va">region_set</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span> <span class="fu">seqlengths</span><span class="op">(</span><span class="va">extended_tss</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">n_hits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">ov</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p</span> <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="va">n_hits</span> <span class="op">-</span> <span class="fl">1</span>, <span class="va">n_total</span>, <span class="va">prop</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="the-web-based-tool" class="section level3" number="7.2.5">
+<h3>
+<span class="header-section-number">7.2.5</span> The web-based tool<a class="anchor" aria-label="anchor" href="#the-web-based-tool"><i class="fas fa-link"></i></a>
+</h3>
+<p>GREAT is implemented as a web-based tool. The use is very straightforward.</p>
+</div>
+<div id="the-rgreat-package" class="section level3" number="7.2.6">
+<h3>
+<span class="header-section-number">7.2.6</span> The rGREAT package<a class="anchor" aria-label="anchor" href="#the-rgreat-package"><i class="fas fa-link"></i></a>
+</h3>
+<p>GREAT web service is useful for xxx, but xxx. The rGREAT package can make GREAT analysis automatic by automaticlaly submitting genomic regions to GREAT web service and retrieve results from there on the fly.</p>
+</div>
+</div>
+<div id="local-great-analysis" class="section level2" number="7.3">
 <h2>
-<span class="header-section-number">7.3</span> The rGREAT package<a class="anchor" aria-label="anchor" href="#the-rgreat-package"><i class="fas fa-link"></i></a>
+<span class="header-section-number">7.3</span> Local GREAT analysis<a class="anchor" aria-label="anchor" href="#local-great-analysis"><i class="fas fa-link"></i></a>
+</h2>
+<p>GREAT, although is a popular tool,</p>
+<p>extension</p>
+</div>
+<div id="rnaseq-and-methylation-adjusted-ora" class="section level2" number="7.4">
+<h2>
+<span class="header-section-number">7.4</span> RNASeq and methylation-adjusted ORA<a class="anchor" aria-label="anchor" href="#rnaseq-and-methylation-adjusted-ora"><i class="fas fa-link"></i></a>
 </h2>
 </div>
-<div id="the-lola-package" class="section level2" number="7.4">
+<div id="snp-based-gsea" class="section level2" number="7.5">
 <h2>
-<span class="header-section-number">7.4</span> The Lola package<a class="anchor" aria-label="anchor" href="#the-lola-package"><i class="fas fa-link"></i></a>
+<span class="header-section-number">7.5</span> SNP-based GSEA<a class="anchor" aria-label="anchor" href="#snp-based-gsea"><i class="fas fa-link"></i></a>
 </h2>
 </div>
-<div id="rnaseq-and-methylation-adjusted-ora" class="section level2" number="7.5">
+<div id="general-comments" class="section level2" number="7.6">
 <h2>
-<span class="header-section-number">7.5</span> RNASeq and methylation-adjusted ORA<a class="anchor" aria-label="anchor" href="#rnaseq-and-methylation-adjusted-ora"><i class="fas fa-link"></i></a>
-</h2>
-</div>
-<div id="snp-based-gsea" class="section level2" number="7.6">
-<h2>
-<span class="header-section-number">7.6</span> SNP-based GSEA<a class="anchor" aria-label="anchor" href="#snp-based-gsea"><i class="fas fa-link"></i></a>
-</h2>
-</div>
-<div id="general-comments" class="section level2" number="7.7">
-<h2>
-<span class="header-section-number">7.7</span> general comments<a class="anchor" aria-label="anchor" href="#general-comments"><i class="fas fa-link"></i></a>
+<span class="header-section-number">7.6</span> general comments<a class="anchor" aria-label="anchor" href="#general-comments"><i class="fas fa-link"></i></a>
 </h2>
 <p>E.g. large sample size</p>
 <p>compare between different sets of genomic regions</p>
@@ -114,17 +186,26 @@ discuss the problems of directly apply ORA on genomic data and the solutions.</p
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#gene-set-enrichment-analysis-in-genomics"><span class="header-section-number">7</span> Gene Set Enrichment Analysis in Genomics</a></li>
 <li><a class="nav-link" href="#overview-4"><span class="header-section-number">7.1</span> Overview</a></li>
-<li><a class="nav-link" href="#the-great-method"><span class="header-section-number">7.2</span> The GREAT method</a></li>
-<li><a class="nav-link" href="#the-rgreat-package"><span class="header-section-number">7.3</span> The rGREAT package</a></li>
-<li><a class="nav-link" href="#the-lola-package"><span class="header-section-number">7.4</span> The Lola package</a></li>
-<li><a class="nav-link" href="#rnaseq-and-methylation-adjusted-ora"><span class="header-section-number">7.5</span> RNASeq and methylation-adjusted ORA</a></li>
-<li><a class="nav-link" href="#snp-based-gsea"><span class="header-section-number">7.6</span> SNP-based GSEA</a></li>
-<li><a class="nav-link" href="#general-comments"><span class="header-section-number">7.7</span> general comments</a></li>
+<li>
+<a class="nav-link" href="#the-great-method"><span class="header-section-number">7.2</span> The GREAT method</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#construct-region-sets"><span class="header-section-number">7.2.1</span> Construct region sets</a></li>
+<li><a class="nav-link" href="#the-binomial-model"><span class="header-section-number">7.2.2</span> The binomial model</a></li>
+<li><a class="nav-link" href="#the-hypergeometric-model-when-dealing-with-background"><span class="header-section-number">7.2.3</span> The hypergeometric model when dealing with background</a></li>
+<li><a class="nav-link" href="#implementation"><span class="header-section-number">7.2.4</span> implementation</a></li>
+<li><a class="nav-link" href="#the-web-based-tool"><span class="header-section-number">7.2.5</span> The web-based tool</a></li>
+<li><a class="nav-link" href="#the-rgreat-package"><span class="header-section-number">7.2.6</span> The rGREAT package</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#local-great-analysis"><span class="header-section-number">7.3</span> Local GREAT analysis</a></li>
+<li><a class="nav-link" href="#rnaseq-and-methylation-adjusted-ora"><span class="header-section-number">7.4</span> RNASeq and methylation-adjusted ORA</a></li>
+<li><a class="nav-link" href="#snp-based-gsea"><span class="header-section-number">7.5</span> SNP-based GSEA</a></li>
+<li><a class="nav-link" href="#general-comments"><span class="header-section-number">7.6</span> general comments</a></li>
 </ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          
+<li><a id="book-source" href="https://github.com/jokergoo/GSEA_book/blob/master/06-in-genomics.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/jokergoo/GSEA_book/edit/master/06-in-genomics.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
         </ul>
 </div>
     </nav>
@@ -136,7 +217,7 @@ discuss the problems of directly apply ORA on genomic data and the solutions.</p
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-09-01.</p>
+    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-11-26.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

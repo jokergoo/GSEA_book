@@ -1,7 +1,7 @@
 --- 
 title: "Gene Set Enrichment Analysis with R and Bioconductor"
 author: "Zuguang Gu"
-date: "2022-09-01"
+date: "2022-11-26"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [book.bib, packages.bib]

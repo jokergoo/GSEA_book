@@ -18,6 +18,7 @@
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
+<link rel="stylesheet" href="style.css">
 <meta name="description" content="6.1 Overview Recall in Chapter xx when we introduce the GSEA algorithm, the first step is to calcualte gene-level scores, then the gene-levels scores in a gene set is aggregated into a gene...">
 <meta property="og:description" content="6.1 Overview Recall in Chapter xx when we introduce the GSEA algorithm, the first step is to calcualte gene-level scores, then the gene-levels scores in a gene set is aggregated into a gene...">
 <meta name="twitter:description" content="6.1 Overview Recall in Chapter xx when we introduce the GSEA algorithm, the first step is to calcualte gene-level scores, then the gene-levels scores in a gene set is aggregated into a gene...">
@@ -56,7 +57,7 @@
 </ul>
 
         <div class="book-extra">
-          
+          <p><a id="book-repo" href="https://github.com/jokergoo/GSEA_book">View book source <i class="fab fa-github"></i></a></p>
         </div>
       </nav>
 </div>
@@ -290,7 +291,7 @@ partially lease square regression or regulazeid linear regression.</p>
 <h2>
 <span class="header-section-number">6.4</span> Implementation of GSEA framework<a class="anchor" aria-label="anchor" href="#implementation-of-gsea-framework"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/CePa">CePa</a></span><span class="op">)</span></span>
 <span><span class="va">condition</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/CePa/man/read.cls.html">read.cls</a></span><span class="op">(</span><span class="st">"data/P53.cls"</span>, treatment <span class="op">=</span> <span class="st">"MUT"</span>, control <span class="op">=</span> <span class="st">"WT"</span><span class="op">)</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="va">condition</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">condition</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"WT"</span>, <span class="st">"MUT"</span><span class="op">)</span><span class="op">)</span></span>
@@ -306,15 +307,15 @@ partially lease square regression or regulazeid linear regression.</p>
 <li><p>output: a vector of gene-level scores</p></li>
 <li><p>method: (t-value, log2fc, …)</p></li>
 </ul>
-<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># implement t-values as gene-level stat</span></span>
 <span><span class="va">gene_level</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
-<span>  <span class="va">tdf</span> <span class="op">=</span> <span class="va">genefilter</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/genefilter/man/rowFtests.html">rowttests</a></span><span class="op">(</span><span class="va">mat</span>, <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">condition</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">tdf</span> <span class="op">=</span> <span class="va">genefilter</span><span class="op">:</span><span class="fu">rowttests</span><span class="op">(</span><span class="va">mat</span>, <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">condition</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">stat</span> <span class="op">=</span> <span class="va">tdf</span><span class="op">$</span><span class="va">statistic</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">stat</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/HenrikBengtsson/matrixStats">matrixStats</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">genefilter</span><span class="op">)</span></span>
 <span></span>
@@ -345,7 +346,7 @@ partially lease square regression or regulazeid linear regression.</p>
 <span>    </span>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">stat</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">=</span> <span class="fu">gene_level</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, method <span class="op">=</span> <span class="st">"s2n"</span><span class="op">)</span></span></code></pre></div>
 <p>The transformation on gene-level values can actually be integrated as a part of the calculation of gene-level values, i.e. <span class="math inline">\(f'(f())\)</span> can also be thought
 as a gene-level statistic.</p>
@@ -357,7 +358,7 @@ ouput: the values are 1/0</p>
 <p>binarize = function(x) ifelse(x &lt; 0.05, 1, 0)</p>
 <p>if the gene-level stat is log2fc</p>
 <p>binarize = function(x) ifelse(abs(x) &gt; 1, 1, 0)</p>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gene_level</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span>, <span class="va">method</span> <span class="op">=</span> <span class="st">"tvalue"</span>, <span class="va">transform</span> <span class="op">=</span> <span class="st">"none"</span>, </span>
 <span>  <span class="va">binarize</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        </span>
@@ -399,7 +400,7 @@ ouput: the values are 1/0</p>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Let’s test <code>gene_level()</code>. Here we still use the p53 dataset which is from the GSEA original paper.</p>
 <p>Let’s check the gene-level values:</p>
-<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">methods</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"log2fc"</span>, <span class="st">"s2n"</span>, <span class="st">"tvalue"</span>, <span class="st">"sam"</span><span class="op">)</span></span>
 <span><span class="va">lt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">methods</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">gene_level</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, method <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">lt</span><span class="op">)</span> <span class="op">=</span> <span class="va">methods</span></span>
@@ -407,7 +408,7 @@ ouput: the values are 1/0</p>
 <div class="inline-figure"><img src="05-framework_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;"></div>
 <p>Also we can check number of differential genes (gene level: <code>ttest</code> + transform: <code>binary</code>).
 Note a better way is to filter by FDR, but for simplicity, we use p-values directly.</p>
-<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">=</span> <span class="fu">gene_level</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, method <span class="op">=</span> <span class="st">"ttest"</span>, transform <span class="op">=</span> <span class="st">"binary"</span>, </span>
 <span>    binarize <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">x</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
@@ -415,7 +416,7 @@ Note a better way is to filter by FDR, but for simplicity, we use p-values direc
 <span><span class="co">#    0    1 </span></span>
 <span><span class="co"># 9394  706</span></span></code></pre></div>
 <p>If method is set to <code>log2fc</code>, then the differential genes can be selected by setting a cutoff for log2 fold change.</p>
-<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">=</span> <span class="fu">gene_level</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, method <span class="op">=</span> <span class="st">"log2fc"</span>, transform <span class="op">=</span> <span class="st">"binary"</span>, </span>
 <span>    binarize <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
@@ -424,14 +425,14 @@ Note a better way is to filter by FDR, but for simplicity, we use p-values direc
 <span><span class="co"># 9717  383</span></span></code></pre></div>
 <p>Implementing <code>gene_level()</code> is actually simply.</p>
 <p>Next we implement the calculation of set-level statistics. A nature design for the set-level function is to let it accept a vector of gene-level statistics and a gene set represented as a vector of genes, like follows:</p>
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">set_fun</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">gene_stat</span>, <span class="va">geneset</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">s</span> <span class="op">=</span> <span class="va">gene_stat</span><span class="op">[</span><span class="va">geneset</span><span class="op">]</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>However, we need to make sure all genes in <code>geneset</code> are also in <code>gene_stat</code>. A safer way
 is to test which genes in <code>gene_stat</code> are also in <code>geneset</code>:</p>
-<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">set_fun</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">gene_stat</span>, <span class="va">geneset</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">s</span> <span class="op">=</span> <span class="va">gene_stat</span><span class="op">[</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">gene_stat</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">geneset</span> <span class="op">]</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
@@ -440,7 +441,7 @@ is to test which genes in <code>gene_stat</code> are also in <code>geneset</code
 <p>before <code>geneset</code> is a vector of gene IDs
 now <code>l_set</code>: a logical vector, which has the same length of <code>gene_stat</code>,
 if the value is TRUE, it means the gene is in the set, if it is FALSE, the gene is NOT in the set</p>
-<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">set_level</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">gene_stat</span>, <span class="va">l_set</span>, <span class="va">method</span> <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">l_set</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span></span>
@@ -488,7 +489,7 @@ if the value is TRUE, it means the gene is in the set, if it is FALSE, the gene 
 <li>a gene-level scores</li>
 <li>a logical vector which shows whether the genes are in a set</li>
 </ol>
-<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gene_stat</span> <span class="op">=</span> <span class="fu">gene_level</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">ln</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html">strsplit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span><span class="op">(</span><span class="st">"data/c2.symbols.gmt"</span><span class="op">)</span>, <span class="st">"\t"</span><span class="op">)</span></span>
@@ -510,7 +511,7 @@ and it returns the set-level score.</p>
 </ul>
 <p>output: a set-level statistic</p>
 <p>gsea_tiny() [ gene_level() + set_level() ]</p>
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gsea_tiny</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span>, </span>
 <span>    <span class="va">gene_level_method</span> <span class="op">=</span> <span class="st">"tvalue"</span>, <span class="va">transform</span> <span class="op">=</span> <span class="st">"none"</span>, <span class="va">binarize</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span>,</span>
 <span>    <span class="va">set_level_method</span> <span class="op">=</span> <span class="st">"mean"</span>, <span class="va">geneset</span><span class="op">)</span> <span class="op">{</span></span>
@@ -525,7 +526,7 @@ and it returns the set-level score.</p>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">set_stat</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>We apply <code>gsea_tiny()</code> to the p53 dataset.</p>
-<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">geneset</span><span class="op">)</span></span>
 <span><span class="co"># [1] 0.8476668</span></span></code></pre></div>
 <p>We use <code><a href="https://rdrr.io/r/stats/wilcox.test.html">wilcox.test()</a></code> to calculate the Wilcoxon statistic. Note this function also does a lot of extra calculations. We can implement a function which “just” calculates the Wilcoxon statistic but do nothing else:</p>
@@ -539,7 +540,7 @@ every value in x to every value in y</p>
 <p>n*m</p>
 <p><code><a href="https://rdrr.io/r/base/outer.html">outer()</a></code></p>
 <p>m = outer(x, y, “&gt;”)</p>
-<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb150"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wilcox_stat</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">x1</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">100</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">x1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/AnnotationDbi/man/Bimap-envirAPI.html">sample</a></span><span class="op">(</span><span class="va">x1</span>, <span class="fl">100</span><span class="op">)</span></span>
@@ -550,7 +551,7 @@ every value in x to every value in y</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/outer.html">outer</a></span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="st">"&gt;"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Similarly, we implement a new function which only calculates chi-square statistic:</p>
-<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># x1: a logical vector or a binary vector</span></span>
 <span><span class="co"># x2: a logical vector or a binary vector</span></span>
 <span><span class="va">chisq_stat</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span> <span class="op">{</span></span>
@@ -582,7 +583,7 @@ every value in x to every value in y</p>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">stat</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>and we change <code>set_level()</code> accordingly:</p>
-<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb152"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">set_level</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">gene_stat</span>, <span class="va">l_set</span>, <span class="va">method</span> <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">l_set</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span></span>
@@ -631,7 +632,7 @@ every value in x to every value in y</p>
 <h2>
 <span class="header-section-number">6.5</span> geneset to be a list of gene sets<a class="anchor" aria-label="anchor" href="#geneset-to-be-a-list-of-gene-sets"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb153"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># geneset: a list of vectors (gene IDs)</span></span>
 <span><span class="va">gsea_tiny</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span>, </span>
 <span>    <span class="va">gene_level_method</span> <span class="op">=</span> <span class="st">"tvalue"</span>, <span class="va">transform</span> <span class="op">=</span> <span class="st">"none"</span>, <span class="va">binarize</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span>,</span>
@@ -649,7 +650,7 @@ every value in x to every value in y</p>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">set_stat</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Check the new version of <code>gsea_tiny()</code>:</p>
-<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb154"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ss</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">ss</span><span class="op">)</span></span>
 <span><span class="co">#          41bbPathway          ace2Pathway acetaminophenPathway </span></span>
@@ -658,7 +659,7 @@ every value in x to every value in y</p>
 <span><span class="co">#           -0.2944815</span></span></code></pre></div>
 <p>Now with <code>gsea_tiny()</code>, we can also generate the null distribution of the set-level statistics, just by
 generating random matrices.</p>
-<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb155"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># sample permutation</span></span>
 <span><span class="va">ss_random</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">)</span> <span class="op">{</span></span>
@@ -672,7 +673,7 @@ generating random matrices.</p>
 <span>    <span class="va">ss_random</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">mat2</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>A better design is to integrate permutation procedures inside <code>gsea_tiny()</code>. We first integrate sample permutation:</p>
-<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb156"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gsea_tiny</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span>, </span>
 <span>    <span class="va">gene_level_method</span> <span class="op">=</span> <span class="st">"tvalue"</span>, <span class="va">transform</span> <span class="op">=</span> <span class="st">"none"</span>, <span class="va">binarize</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span>,</span>
 <span>    <span class="va">gene_stat</span>, <span class="va">set_level_method</span> <span class="op">=</span> <span class="st">"mean"</span>, <span class="va">geneset</span>,</span>
@@ -723,19 +724,19 @@ generating random matrices.</p>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Let’s have a try. It is actually quite slow to run 1000 permutations.</p>
-<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb157"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span><span class="op">)</span></span></code></pre></div>
 <p>This is the basic procedures of developing new R functions. First we make sure the functions are working, next we optimize the functions to let them running faster or use less memory.</p>
 <p><code>gsea_tiny()</code> running with 100 permutations only needs several seconds.</p>
-<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb158"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span>, nperm <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <p>The package <strong>profvis</strong> provides an easy to for profiling.</p>
-<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb159"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/profvis/">profvis</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/profvis/man/profvis.html">profvis</a></span><span class="op">(</span><span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span>, nperm <span class="op">=</span> <span class="fl">100</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>We can see the process of <code>%in%</code> uses quite a lot of running time.</p>
 <p>we can first calculate the relations of genes and sets and later they can be repeatedly used.</p>
-<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb160"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gsea_tiny</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span>, </span>
 <span>    <span class="va">gene_level_method</span> <span class="op">=</span> <span class="st">"tvalue"</span>, <span class="va">transform</span> <span class="op">=</span> <span class="st">"none"</span>, <span class="va">binarize</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span>,</span>
 <span>    <span class="va">gene_stat</span>, <span class="va">set_level_method</span> <span class="op">=</span> <span class="st">"mean"</span>, <span class="va">geneset</span>,</span>
@@ -787,11 +788,11 @@ generating random matrices.</p>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Now it is faster for 1000 permutations:</p>
-<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span><span class="op">)</span></span></code></pre></div>
 <p>To support gene permutation, we only need to permute the gene-level statistics calculated from the original matrix.
 Note we also move position of <code>geneset</code> argument to the start of the argument list because it is a must-set argument.</p>
-<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb162"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gsea_tiny</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span>, <span class="va">condition</span>, <span class="va">geneset</span>,</span>
 <span>    <span class="va">gene_level_method</span> <span class="op">=</span> <span class="st">"tvalue"</span>, <span class="va">transform</span> <span class="op">=</span> <span class="st">"none"</span>, <span class="va">binarize</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span>,</span>
 <span>    <span class="va">gene_stat</span>, <span class="va">set_level_method</span> <span class="op">=</span> <span class="st">"mean"</span>,</span>
@@ -851,11 +852,11 @@ Note we also move position of <code>geneset</code> argument to the start of the 
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Let’s check:</p>
-<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb163"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">df1</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span>, perm_type <span class="op">=</span> <span class="st">"sample"</span><span class="op">)</span></span>
 <span><span class="va">df2</span> <span class="op">=</span> <span class="fu">gsea_tiny</span><span class="op">(</span><span class="va">expr</span>, <span class="va">condition</span>, geneset <span class="op">=</span> <span class="va">gs</span>, perm_type <span class="op">=</span> <span class="st">"gene"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb164"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df1</span> <span class="op">=</span> <span class="va">df1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">df1</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span>, <span class="op">]</span></span>
 <span><span class="va">df2</span> <span class="op">=</span> <span class="va">df2</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">df2</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">df1</span><span class="op">)</span></span>
@@ -878,7 +879,7 @@ Note we also move position of <code>geneset</code> argument to the start of the 
 <span class="header-section-number">6.6</span> current tools for GSEA framework<a class="anchor" aria-label="anchor" href="#current-tools-for-gsea-framework"><i class="fas fa-link"></i></a>
 </h2>
 <p>Package <strong>EnrichmentBrowser</strong> integrates a lot of GSEA methods. The integrated methods are:</p>
-<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb165"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">EnrichmentBrowser</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/sbea.html">sbeaMethods</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#  [1] "ora"        "safe"       "gsea"       "gsa"        "padog"     </span></span>
@@ -886,7 +887,7 @@ Note we also move position of <code>geneset</code> argument to the start of the 
 <span><span class="co"># [11] "ebm"        "mgsa"</span></span></code></pre></div>
 <p><strong>EnrichmentBrowser</strong> needs a special format (in <code>SummarizedExperiment</code>) as input.
 Condition labels should be stored in a column “GROUP.” Log2 fold change and adjusted p-values should be saved in “FC” and “ADJ.PVAL” columns.</p>
-<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb166"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/CePa">CePa</a></span><span class="op">)</span></span>
 <span><span class="va">condition</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/CePa/man/read.cls.html">read.cls</a></span><span class="op">(</span><span class="st">"data/P53.cls"</span>, treatment <span class="op">=</span> <span class="st">"MUT"</span>, control <span class="op">=</span> <span class="st">"WT"</span><span class="op">)</span><span class="op">$</span><span class="va">label</span></span>
 <span><span class="va">expr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/CePa/man/read.gct.html">read.gct</a></span><span class="op">(</span><span class="st">"data/P53_collapsed_symbols.gct"</span><span class="op">)</span></span>
@@ -912,35 +913,35 @@ Condition labels should be stored in a column “GROUP.” Log2 fold change and 
 <span><span class="co"># colnames: NULL</span></span>
 <span><span class="co"># colData names(1): GROUP</span></span></code></pre></div>
 <p><strong>Note, to run <code><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/eaBrowse.html">eaBrowse()</a></code>, you need to explicitly convert to ENTREZID.</strong></p>
-<div class="sourceCode" id="cb146"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb167"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">se</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/idMap.html">idMap</a></span><span class="op">(</span><span class="va">se</span>, org <span class="op">=</span> <span class="st">"hsa"</span>, from <span class="op">=</span> <span class="st">"SYMBOL"</span>, to <span class="op">=</span> <span class="st">"ENTREZID"</span><span class="op">)</span>  <span class="co"># !! Gene ID must be converted to EntrezID</span></span></code></pre></div>
 <p>We load the hallmark gene sets by package <strong>msigdbr</strong>.</p>
 <p><strong>When using the Entrez ID, make sure the “numbers” are converted to “characters.”</strong></p>
-<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb168"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igordot.github.io/msigdbr/">msigdbr</a></span><span class="op">)</span></span>
 <span><span class="va">gs</span> <span class="op">=</span> <span class="fu"><a href="https://igordot.github.io/msigdbr/reference/msigdbr.html">msigdbr</a></span><span class="op">(</span>category <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span></span>
 <span><span class="va">gs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">gs</span><span class="op">$</span><span class="va">human_entrez_gene</span>, <span class="va">gs</span><span class="op">$</span><span class="va">gs_name</span><span class="op">)</span>  <span class="co"># Entrez ID must be used</span></span>
 <span><span class="va">gs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">gs</span>, <span class="va">as.character</span><span class="op">)</span>                 <span class="co"># be careful Entrez ID might be wrongly used as integers, convert them into characters</span></span></code></pre></div>
 <p>Simply call <code><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/sbea.html">sbea()</a></code> function with a specific method:</p>
 <p><strong>Note now you can use <code>eaBowse(res)</code> to create the tiny website for detailed results.</strong></p>
-<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb169"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/sbea.html">sbea</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"gsea"</span>, se <span class="op">=</span> <span class="va">se</span>, gs <span class="op">=</span> <span class="va">gs</span><span class="op">)</span></span>
 <span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/eaBrowse.html">gsRanking</a></span><span class="op">(</span><span class="va">res</span>, signif.only <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>Next we run all supported GSEA methods in <strong>EnrichmentBrowser</strong>.</p>
-<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb170"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">all_gsea_methods</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/sbea.html">sbeaMethods</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">all_gsea_methods</span></span>
 <span><span class="co">#  [1] "ora"        "safe"       "gsea"       "gsa"        "padog"     </span></span>
 <span><span class="co">#  [6] "globaltest" "roast"      "camera"     "gsva"       "samgs"     </span></span>
 <span><span class="co"># [11] "ebm"        "mgsa"</span></span></code></pre></div>
-<div class="sourceCode" id="cb150"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb171"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">all_gsea_methods</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/sets.html">setdiff</a></span><span class="op">(</span><span class="va">all_gsea_methods</span>, <span class="st">"padog"</span><span class="op">)</span></span>
 <span><span class="va">res_list</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">all_gsea_methods</span>, <span class="kw">function</span><span class="op">(</span><span class="va">method</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/sbea.html">sbea</a></span><span class="op">(</span>method <span class="op">=</span> <span class="va">method</span>, se <span class="op">=</span> <span class="va">se</span>, gs <span class="op">=</span> <span class="va">gs</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">res_list</span><span class="op">)</span> <span class="op">=</span> <span class="va">all_gsea_methods</span></span></code></pre></div>
 <p>We compare the significant gene sets from different methods.</p>
-<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb172"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tb_list</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">res_list</span>, <span class="va">gsRanking</span><span class="op">)</span></span>
 <span><span class="va">tb_list</span></span>
 <span><span class="co"># $ora</span></span>
@@ -1031,7 +1032,7 @@ Condition labels should be stored in a column “GROUP.” Log2 fold change and 
 <span><span class="co"># </span></span>
 <span><span class="co"># $mgsa</span></span>
 <span><span class="co"># NULL</span></span></code></pre></div>
-<div class="sourceCode" id="cb152"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb173"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tb_list</span> <span class="op">=</span> <span class="va">tb_list</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">tb_list</span>, <span class="va">length</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/ComplexHeatmap">ComplexHeatmap</a></span><span class="op">)</span></span>
@@ -1101,7 +1102,8 @@ the global distribution of gene level scores…</p>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          
+<li><a id="book-source" href="https://github.com/jokergoo/GSEA_book/blob/master/05-framework.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/jokergoo/GSEA_book/edit/master/05-framework.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
         </ul>
 </div>
     </nav>
@@ -1113,7 +1115,7 @@ the global distribution of gene level scores…</p>
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-09-01.</p>
+    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-11-26.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

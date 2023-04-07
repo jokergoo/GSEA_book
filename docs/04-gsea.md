@@ -88,7 +88,7 @@ sample permutation can be simply done with the `sample()` function. Assume we ha
 ```r
 cmp = rep(c("A", "B"), each = 5)
 sample(cmp, length(cmp))
-#  [1] "A" "A" "B" "B" "B" "A" "B" "A" "A" "B"
+#  [1] "B" "A" "B" "A" "A" "B" "B" "B" "A" "A"
 ```
 
 Each sample permutation generates a new experimental design where the condition is independent to gene expression, thus a ES can be calculated with step 1 and 2. teh sample permutation

@@ -3,103 +3,124 @@
 ## Overview
 
 Over-representation analysis (ORA) uses a simplified model for gene set
-enrichment anlaysis. It directly works on the counts of genes in different categories,
-i.e., whether genes are in the list of interest and whether genes are in the gene set.
-Because of its simplicity, ORA is the mostly used method for gene set enrichment analysis.
-In this chapter, we will introduce different tests for ORA and the implementations in R.
-We will also point out the limitations of ORA of which users need to be careful when they
-apply ORA on their datasets.
+enrichment anlaysis. It directly works on the numbers of genes in different
+categories, i.e., whether genes are in the list of interest and whether genes
+are in the gene set. Because of its simplicity, ORA is the mostly used method
+for gene set enrichment analysis. In this chapter, I will introduce different
+statistical tests for ORA and the implementations in R. I will also point out
+the limitations of ORA which users need to pay attention to when they apply ORA
+on their datasets.
 
 ## What is over-representation?
 
-In many cases, ORA is applied to a list of differentially expressed
-genes, thus, to make readers read this chapter more naturally, we use
-"differentially expressed genes" to represent the list of genes of interest. but please
-keep in mind that the differential genes is just a special case of the gene list. In applications,
-it can any kind of gene lists.
-
-For a gene denoted as $G$, it has two attributes: whether it is differentially expressed
-(DE) and whether it belongs to a gene set. The two relations can be represented in
-a Venn Diagram (Figure \@ref(fig:ora_venn)). We denote $p_1$ as the
-probability of $G$ being differentially expressed, and $p_2$ as the
-probability of $G$ being in the gene set, then we have
-
-$$ p_1 = n_{\mathrm{diff}}/n $$
-$$ p_2 = n_{\mathrm{set}}/n $$
-
-<img src="03-ora_files/figure-html/ora_venn-1.png" width="604.8" style="display: block; margin: auto;" />
-
-where $n_{\mathrm{diff}}$ is the number of DE genes, $n_{\mathrm{set}}$ is the
-number of genes in the gene set, and $n$ is the total number of genes in the
-study. Assume the two attributes of $G$ are independent, i.e., whether genes
-are DE has no preference on whether genes are in the gene set, then the
-expected number of DE genes also in the gene set is $n p_1 p_2$. Denote the
-observed number of DE genes in the gene set as $m$, we can calculate a ratio $r =
-m/n p_1 p_2$. If there are more observed genes in the gene set than expected,
-i.e., $r > 1$, we say DE genes are over-represented in the gene set, or
-identically, we can say genes in the gene set are over-represented in DE genes. And when $r < 1$, we say DE genes are down-represented
-in the gene set.
-
-A quick calculation shows
-
-$$ r = \frac{m}{n p_1 p_2} = \frac{m n}{n_{\mathrm{diff}} n_{\mathrm{set}}} $$
-
-We can look at the problem from a slightly different aspect. We treat $p_1$ which was previously defined as 
-the "background probability" of a gene being DE. We also calculate the probability
-of a genes being DE but only in the gene set,  which we term it as "foreground probability" and denote it as $p^\mathrm{fore}_1$:
-
-$$ p^\mathrm{fore}_1 = m/n_{\mathrm{set}} $$
-
-Then if the foreground probability is higher than background probability, i.e., $p^\mathrm{fore}_1 > p_1$ 
-or $p^\mathrm{fore}_1 / p_1 > 1$, we can say DE genes are over-represented in the gene set. It is easy to see
-
-$$ \frac{P'_1}{P_1} = \frac{m n}{n_{\mathrm{diff}} n_{\mathrm{set}}} $$.
-
-Similarly, we can treat $p_2$ as the "background probability" of a genes being in the gene set, 
-and we calculate the "foreground probability" of a gene being in the gene set, but only in the DE genes, denoted as $p^\mathrm{fore}_2$:
-
-$$ p^\mathrm{fore}_2 = m/n_{\mathrm{diff}}$$
-
-It is easy to see $p^\mathrm{fore}_2/p_2$ is identical to $p^\mathrm{fore}_1/p_1$
+In many cases, ORA is applied to a list of differentially expressed (DE)
+genes, thus, to simplify the description of the text in this chapter, I use DE
+genes to represent the list of genes of interest. But keep in mind that the
+list of DE genes is just a special case of the gene list. In applications, it
+can be any type of gene lists.
 
 
-The score $r$ can be used to measures whether DE genes are
-over-represented in a gene set, where a higher value of $r$ implies there is stronger
-over-representation. Under the statistical procedures, we need to statistical test to calculate a p-value
-for the over-representation to assign a "signficance level" for the enrichment.
-Although $r$ is able to measure the over-representation, its distribution with analytical form is hard to obtain.
-In the next section, we introduce the
-specific distributions or statistical tests for calculating p-values. 
+For an experiment which meansures gene expression in several conditions, the
+total genes can be summarized with a Venn diagram in Figure x. In the Venn
+diagram, the background genes are the total genes in the genome or has
+measured in the experiment. The left circle corresponds to the total DE genes,
+and the right circle corresponds to the total genes in a gene set. A natural
+feeling is if the number of DE genes also in the gene set is large enough, we
+can say the existance of DE genes in the gene set are more than expected, then
+we can conclude DE genes are over-represented in the gene sets. We can also
+say it in another way around, the gene set is over-represented in the DE gene
+lists.
+
+
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/ora_venn-1} \end{center}
+
+
+There are several ways to quantitatively measure such over-representation. As
+we already have the observed number of DE genes in the gene set which
+corresponds to the intersection between two circles in the Venn diagram, the next
+step is to find the "expected" number of DE genes in the gene set. Let's
+denote the total number of background genes as $n$, the number of DE genes
+as $n_\mathrm{de}$, the number of genes in the gene set as $n_\mathrm{set}$ and
+the number of DE genes in the gene set as $k_\mathrm{obs}$. We first calculate the
+following two p-values
+
+
+$$ p_\mathrm{de} = n_\mathrm{de}/n $$
+
+$$ p_\mathrm{set} = n_\mathrm{set}/n $$
+
+
+where $p_\mathrm{de}$ and $p_\mathrm{set}$ can be thought as the probabilities
+of a gene being DE and being in the gene set. For the "expected" scenario, we
+assume the two events: "the gene is a DE gene" and "the gene is in the gene
+set", are independent, or in other words, there is no over-representation or
+under-representation between the two types of gene lists, then the expected
+number of DE genes in the gene set denoted as $k_\mathrm{exp}$ can be
+calculated by directly multiplying $p_\mathrm{de}$ and $p_\mathrm{set}$.
+
+$$ k_\mathrm{exp} = p_\mathrm{de} p_\mathrm{set} n $$
+
+We can simply compare $k_\mathrm{obs}$ and $k_\mathrm{exp}$ by their ratio denoted as $r$:
+
+$$ r = \frac{k_\mathrm{obs}}{k_\mathrm{exp}} = \frac{k_\mathrm{obs}}{p_\mathrm{de} p_\mathrm{set} n} = \frac{k_\mathrm{obs} n}{n_\mathrm{de} n_\mathrm{set}} $$
+
+If $r > 1$, there are more DE genes than expected in the gene set, then we can
+conclude the two attributes of being a DE gene and being in the gene set have
+a positive association, or we can say there is over-representation between the
+two types of gene lists.
+
+Less oftenly used, when $r < 1$, we can say there is an under-representation
+between DE genes and the gene set.
+
+In the previous text, we compared the observed and expected numbers of DE
+genes in the gene set to evaluate the over-representation. Next we look at the
+problem from a slightly different aspect. We treat $p_\mathrm{de}$ as the "background probability" of a gene being DE,
+because it is calculated against the total number of genes in the background. Next we
+calculate the probability of a genes being DE but only in the gene set,  which
+we can treat as the "foreground probability". Let's denote it as
+$p^\mathrm{fore}_\mathrm{de}$ and it can be calculated as
+
+$$ p^\mathrm{fore}_\mathrm{de} = k_\mathrm{obs}/n_{\mathrm{set}} .$$
+
+Then we can compare the background and foreground probability. If the
+foreground probability is higher than background probability, i.e.,
+$p^\mathrm{fore}_\mathrm{de} > p_\mathrm{de}$ or $p^\mathrm{fore}_\mathrm{de}/ p_\mathrm{de} > 1$, 
+we can conclude DE genes are over-represented in the
+gene set. It is easy to see the following relation:
+
+$$ \frac{p^\mathrm{fore}_\mathrm{de}}{p_\mathrm{de}} = \frac{k_\mathrm{obs} n}{n_\mathrm{de} n_\mathrm{set}} = r .$$
+
+Similarly, we can also treat $p_\mathrm{set}$ as the "background probability" of a
+gene being in the gene set, and we calculate the "foreground probability"
+denotated as $p^\mathrm{fore}_\mathrm{set}$ of a gene being in the gene set,
+but only restricted in the DE genes. It is easy to see the
+following relation.
+
+$$ \frac{p^\mathrm{fore}_\mathrm{de}}{p_\mathrm{de}} = \frac{p^\mathrm{fore}_\mathrm{set}}{p_\mathrm{set}} $$
+
+
+The ratio $r$ can be used to quantitatively measure whether there is an over-representation
+between DE genes and the gene set, where a higher value of $r$ implies there is
+stronger over-representation. Under the statistical procedures, we need to
+calculate a _p_-value for the over-representation to assign a "signficance
+level" for the enrichment. Although $r$ is able to measure the
+over-representation, its distribution in analytical form is hard to obtain. In
+the next section, we introduce specific distributions or statistical tests
+for calculating p-values under the ORA framework.
 
 
 ## Statistical tests
 
-### Hypergeometric distribution
+### Standard denotations in ORA
 
 
-
-Hypergeometric distribution is a xxx for discrete events. We will first briefly introduce the
-form of hypergenometric and then we map xxx to the ORA analysis.
-
-The problem can be formulated as follows. Assume there are $N$ balls in a bag, where there are $K$ red balls, and 
-$N - K$ blue balls. If randomly picking $n$ balls without replacement from there (once a ball is picked, it will be put back), what is the probability of having $k$ red balls out of $n$ balls?
-
-Also we assume it is independent to pick any ball, then, we can have the following numbers:
-
-- Total number of combinations of picking $n$ balls from the bag: $\binom{N}{n}$.
-- Number of combinations of pick $k$ red balls from $K$ red balls: $\binom{K}{k}$.
-- Number of combinations of picking $n-k$ blue balls from $N-K$ blue balls: $\binom{N-K}{n-k}$.
-
-Since picking red balls and picking blue balls are independent, the number of combinations of picking $n$ balls which contain $k$ red
-and $n-k$ blue balls is $\binom{K}{k} \binom{N-K}{n-k}$, and the probability denoted as $P_{\mathrm{hyper}}$ is calculated as:
-
-$$ P_{\mathrm{hyper}} = \frac{\binom{K}{k} \binom{N-K}{n-k}}{\binom{N}{n}}$$.
-
-Let's denote the number of red balls as a random variable $X$, then $X$ follows the hypergenometric distribution with parameters 
-$N$, $K$ and $n$, written as $X \sim \mathrm{Hyper}(N, K, n)$.
-
-
-Now we can map to ORA analysis. Before that, we use commonly used denotations in literatures.
+In literature, the problem of ORA is often formulated into the following 2x2
+contigency table. In the table, rows are split into whether genes are DE or
+not, and columns are split into whether the genes are in the gene set or not.
+Values in the table are the number of genes in each category. $n$ corresponds
+to the total number of background genes.
 
 |   | In the gene set  | Not in the gene set  |  Total   |
 |---|---|---|----|
@@ -107,74 +128,145 @@ Now we can map to ORA analysis. Before that, we use commonly used denotations in
 | Non-DE genes| $n_{21}$ | $n_{22}$ |  $n_{2+}$ |
 | Total| $n_{+1}$ | $n_{+2}$ |  $n$ |
 
-ORA basically has the same form as the ball problem. We just need to change the terms while the 
-statistical model is unchanged. E.g. we change red balls to DE genes and blue balls to non-DE genes.
-balls to pick is the genes in the gene set. The full map is in Table x.
+The distributions or statistical tests introduced in the section are all based
+on this table. If you are confused by the text or the mathematical denotations
+in later sections, you can always come back and refer to this table.
 
-|    |    |    |     |
-|---|---|----|-----|
-|Total balls | $N$ | Total genes | $n$ |
-|  Red balls | $K$ | DE genes |  $n_{1+}$ |
-| Blue balls | $N-K$ | non-DE genes | $n_{2+}$ |
-| Balls to pick | $n$ | genes in gene set | $n_{+1}$ |
-| Red balls that are picked | $k$ | DE genes in the gene set | $n_{11}$ |
-| Blue balls that are picked | $n-k$ | non-DE genes in the gene set | $n_{21}$ |
+### Hypergeometric distribution
 
-Specifically for ORA, denote number of DE genes in a gene set as a random variable $X$, then
 
-$$ X \sim \mathrm{Hyper}(n, n_{1+}, n_{+1}) $$
+Hypergeometric distribution is a probability distribution for discrete events.
+I will first briefly introduce the form of hypergenometric distribution as introduced
+in other textbooks. Later I will map to ORA.
 
-If $n_{11}$ is big, whether a gene id DE and whether a gene is in the gene set is highly dependent, or 
-in other words, DE genes are over-represented in the gene set. For the random variable $X$, the p-value
-is calculated as $Pr(X \geq n_{11})$ which is the probability of X no less than $n_{11}$. If the p-value is
-very small, and we observed $X = n_{11}$, we can say, a rare event happens and the p-value is signficant.
+The hypergeometric distribution comes from the following question. Assume
+there are $N$ balls in a bag, where there are $K$ red balls, and $N - K$ blue
+balls. If randomly picking $n$ balls from there, what is the probability of
+having $k$ red balls out of $n$ balls?
 
-$$ Pr( X >= n_11 ) = 1 - Pr(X < n_11) = 1 - \sum_{x \in {0, .., {n_11 - 1}}} p(x, n_{+1}, n_{1+}, n)$$
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-1-1} \end{center}
+
+We assume each ball can be picked independently and with equal probability,
+then, we can have the following numbers:
+
+- Total number of ways of picking $n$ balls from the bag: $\binom{N}{n}$.
+- Number of ways of pick $k$ red balls from $K$ red balls: $\binom{K}{k}$.
+- Number of ways of picking $n-k$ blue balls from $N-K$ blue balls: $\binom{N-K}{n-k}$.
+
+Since picking red balls and picking blue balls are independent, the number of
+ways of picking $n$ balls which contain $k$ red and $n-k$ blue balls is
+$\binom{K}{k} \binom{N-K}{n-k}$. Then the probability denoted as
+$P$ from the question is calculated as:
+
+$$ P = \frac{\binom{K}{k} \binom{N-K}{n-k}}{\binom{N}{n}} ,$$
+
+where in the denominator is the number of ways of picking $n$ balls without distinguishing whether
+they are red or blue.
+
+If $N$, $K$ and $n$ are all fixed values, the number of red balls that are picked can
+be denoted as a random variable $X$. Then $X$ follows the hypergenometric
+distribution with parameters $N$, $K$ and $n$, written as $X \sim\mathrm{Hyper}(N, K, n)$.
+
+
+ORA basically has the same form as the ball problem. We just need to change the description while the 
+statistical model is unchanged. Let's change the original question to swtich to genes:
+
+Assume there are $N$ _balls_ (genes) in _a bag_ (an experiment),
+where there are $K$ _red balls_ (DE genes), and $N - K$ _blue balls_ (non-DE genes). If randomly picking $n$
+_balls_ (the amount of genes with the same size as the gene set) from there, what is the probability of having $k$ _red balls out of $n$
+balls_ (DE genes in the gene set)?
+
+Let's also map the original denotations to those used in Table x.
+
+|                            |       |                              |           |
+|----------------------------|-------|------------------------------|-----------|
+| Total balls                | $N$   | Total genes                  | $n$       |
+| Red balls                  | $K$   | DE genes                     | $n_{1+}$  |
+| Blue balls                 | $N-K$ | non-DE genes                 | $n_{2+}$  |
+| Balls to pick              | $n$   | genes in gene set            | $n_{+1}$  |
+| Red balls that are picked  | $k$   | DE genes in the gene set     | $n_{11}$  |
+| Blue balls that are picked | $n-k$ | non-DE genes in the gene set | $n_{21}$  |
+
+
+Specifically for ORA, we denote the number of DE genes in the gene set as a random variable $X$, then
+
+$$ X \sim \mathrm{Hyper}(n, n_{1+}, n_{+1}) .$$
+
+We can also transite the question in another way around. We can map genes in
+the gene set to red balls and total DE genes as the balls to pick. In this
+case, $X \sim \mathrm{Hyper}(n, n_{+1}, n_{1+})$. The two forms actually are
+identical.
+
+If there is no relation between whether genes are DE and genes are in the
+gene set, it is expected that $n_{11}$ is not too large, while if the
+observed value of $n_{11}$ is large enough, we could conclude that it is
+not likely that the two attributes of genes are independent, where DE genes preferably 
+exist in the gene set. Thus, we can use the probability of obtaining number of DE genes in the gene set equal to or larger than $n_11$ denoted as
+$Pr(X \geq n_{11})$ to measure the unlikeness. If obtaining a small p-value with the observed value $n_{11}$, we would say the null
+hypothesis.
+
+$$ \mathrm{Pr}( X >= n_{11} ) = \sum_{x \in {n_{11},...,\min{{n_{+1}, n_{1+}}}}} \mathrm{Pr}(X=x)$$
 
 ### Binomial distribution
 
-When $n_{1+}$ or $n_{+1}$ or $n$ is large, the
-hypergenometric distribution can be approximated to a Binomial test. Now we
-need to change the question a little bit. Now we only look at the genes in the gene set.
-In a gene set with $n_{+1}$ genes, each gene can be a DE genes with probabilty $p_{diff}$.
-What is the probability of observing $n_{11}$ DE genes. First $p_{\mathrm{diff}}$ is estimated as
+The hypergenometric distribution
+can be approximated by the Binomial distribution. Now we need to change the
+problem a little bit and we only look at the genes in the gene set, In a gene
+set with $n_{+1}$ genes, each gene can be a DE genes with probabilty
+$p_\mathrm{de}$, which is estimated as
 
-$$p_{\mathrm{diff}} = n_{1+}/n $$
+$$p_{\mathrm{de}} = n_{1+}/n $$
 
-The probelm can be thought as pick ball $n_{+1}$ times, the number of picking $n_{11}$ balls is $\binom{n_{+1}}{n_{11}}$.
-The probability of all $n_{11}$ balls are all DE is $p_{\mathrm{diff}}^{n_{11}}$ and the other $n_{+1} - n_{11}$ balls 
-are not DE is $(1-p_{\mathrm{diff}})^{n_{+1} - n_{11}}$, then the final probability is
+The probelm can be thought as we tend to pick all $n_{+1}$ genes from the gene set, but each gene only has
+a successfull rate to be picked. The probability of successfully picked is $p_\mathrm{de}$, which means
+it has a unsuccessful rate of $1 - p_\mathrm{de}$. Then the probability of successfully
+picking $n_{11}$ genes can be calcualted as 
 
-$$ p =  \binom{n_{+1}}{n_{11}} p_{\mathrm{diff}}^{n_{11}} (1-p_{\mathrm{diff}})^{n_{+1} - n_{11}} $$
+$$ P_\mathrm{Binom} =  \binom{n_{+1}}{n_{11}} p_{\mathrm{de}}^{n_{11}} (1-p_{\mathrm{de}})^{n_{+1} - n_{11}} $$
 
-If again, denote the number of DE genes in the gene set as a random variable $X$, then $X \sim \mathrm{Binom}(n_{+1}, p_{\mathrm{diff}})$.
+In the formula, the binomial coefficient term correspond to the total number of ways to pick $n_{11}$ genes
+from $n_{+1}$ genes, among them, the $n_{11}$ genes are all successful, which is the second term which
+contains assumultive production of $n_{11}$ p-values. We also know the other $n_{+1} - n_{11}$ are not picked
+and they should also be multiplied.
 
-And p-value is calculated as $Pr(X \geq n_{11})$.
+If again, denote the number of DE genes in the gene set as a random variable
+$X$, then $X \sim \mathrm{Binom}(n_{+1}, p_{\mathrm{de}})$. And p-value is calculated as $Pr(X \geq n_{11})$.
 
 We can also do in other other direction, we look at DE genes and each gene has a probability being in the gene set.
 
 $$p_{\mathrm{set}} = n_{+1}/n$$
 
-And approximatedly, $X \sim \mathrm{Binom}(n_{1+}, p_{\mathrm{set}})$. But note, the two p-values are not identical.
+And approximatedly, $X \sim \mathrm{Binom}(n_{1+}, p_{\mathrm{set}})$. But note, the two distributions are not identical.
 
 
-### z-test
+### *z*-test
 
-Let's look back Table xx, if the two events "genes are DE" and "gene is in the gene set" are independent, then the probability
-of a gene being DE in the gene set should be identical to the probability of a gene being DE not in the gene set, which are
-the following two probabilities:
+Let's look back Table xx, if the two events "genes are DE" and "gene is in the
+gene set" are independent, then the probability of a gene being DE in the gene
+set should be identical to the probability of a gene being DE not in the gene
+set, which are the following two probabilities. They correspond to the first two columns in Table x.
 
 $$ p_1 = n_{11}/n_{+1} $$
 $$ P_2 = n_{12}/n_{+2} $$
 
-For genes in the gene set, number of DE genes actually follow a Binomilal distribution $\mathrm{Binom}(n_{+1}, p_1)$,
-and for genes not in the gene set, number of DE genes also follow a Binomial distribution: $\mathrm{Binom}(n_{+2}, p_2)$.
-Now the problem is to test whether the two Binomial distribution is idential. The null hypothesis is $p_1 = p_2$, then
+For genes in the gene set, number of DE genes actually follow a Binomilal
+distribution $\mathrm{Binom}(n_{+1}, p_1)$, and for genes not in the gene set,
+number of DE genes also follow a Binomial distribution:
+$\mathrm{Binom}(n_{+2}, p_2)$. Now the problem is to test whether the two
+Binomial distribution is idential. The null hypothesis is $p_1 = p_2$, then
 when $n_{+1}$ and $n_{+2}$ are large, the following z-score:
 
-$$z = \frac{p_1 - p_2}{\sqrt{p(1-p)} \sqrt{\frac{1}{n_{1+}} + \frac{1}{n_{2+}}}}$$
+$$z = \frac{p_1 - p_2}{\sqrt{p(1-p)} \sqrt{\frac{1}{n_{+1}} + \frac{1}{n_{+2}}}}$$
 
 where $p = \frac{n_{11}+n_{12}}{n_{+1} + n_{+2}} = \frac{n_{1+}}{n}$. $z$ follows a standard normal distribution $N(0,1)$.
+And the p-value is calculated as
+
+$$P(X > z) + P(x < -z) $$
+
+If we only want to test over-representation, p-value can be calculated as
+
+$$P(x > z)$$
 
 It easy to see the test is idential is $p_1$ and $p_2$ are calculated as the probabilities of a genes being in 
 the gene set, for DE genes and non-DE genes.
@@ -182,7 +274,8 @@ the gene set, for DE genes and non-DE genes.
 
 ### Fisher's exact test
 
-Fisher's exact test can be used to 
+Fisher's exact test is used to test 2x2 contigency table. If the marginal values on the contigency table are fixed.
+
 
 ### Chi-square test
 
@@ -209,89 +302,218 @@ Simply calcus reveals that the value of the $\chi^2$ is the square of the z-stat
 
 ## Calculate in R
 
-To demonstrate the different distributions and tests, we use a data fro EBI Altas database
-with accession ID E-GEOD-101794. In the difffernetial expression analysis, there are 968 
-egnes that are differential under cutoff FDR < 0.05, and total number of genes are 38592, we 
-use the gene set named "HALLMARK_KRAS_SIGNALING_DN" fro MsigDb database which contains 200 genes.
-The 2x2 contigency table is as follows
+The four distributions of statistical tests are very basic in statistics and there are already functions
+for calculating p-values.
 
-|     | In the gene set | Not in the gene set |    Total |
-|-----|-----------------|---------------------|----------|
-| DE  |   14            |       954           |     968  |
-|Noe DE |    186        |       37438         |    37624 |
-|Total|    200          |       38392         |    38592 |
+To demonstrate the different distributions and tests, we use a dataset from EBI Altas database
+with accession ID E-GEOD-101794. I only take a subset of results from the dataset which compares gene
+expression between Crohn's disease and non inflammatory bowel disease. The data is from an RNASeq experiment
+and **DESeq2** was applied for differnetial expression analysis. In this secton, I take out significant DE genes
+by setting FDR < 0.05. The original gene ID type is Ensembl ID, since Entrez ID
+is the primary ID type in most of the standard Bioconductor annotation packages, I will first convert genes
+from Ensembl IDs to Entrez IDs. Note this conversion is not one to one, genes may lost if there is no mapping.
+After the conversion, there are 948 genes remains for the analysis.
+
+
+
+```r
+lt = readRDS("data/EBI_E-GEOD-101794_expression.rds")
+diff_table = lt$diff_table
+diff_genes = rownames(diff_table)[diff_table$p_adjust < 0.05]
+library(org.Hs.eg.db)
+diff_genes = mapIds(org.Hs.eg.db, keys = diff_genes, keytype = "ENSEMBL", column = "ENTREZID")
+diff_genes = diff_genes[!is.na(diff_genes)]
+length(diff_genes)
+# [1] 948
+```
+
+We test whether DE genes are enriched in the GO gene set "GO:0000165" (MAPK cascade). The genes in the gene set 
+can be obtained by directly subsetting the object `org.Hs.egGO2ALLEGS`. It is very important the gene set
+is also in the same gene ID type as DE genes.
+
+
+```r
+gene_set = unique(org.Hs.egGO2ALLEGS[["GO:0000165"]])
+```
+
+ORA analysis also depends on the background genes. There are different selections of background genes, and 
+different selection will affect the numbers in the 2x2 contigency table and eventually affect the final p-value.
+In later sections of this chapter, we will discuss the effect of choose different background. Here for the following example,
+I will use all protein coding genes as background genes. The object `org.Hs.egGENETYPE` contains gene types
+for all genes. I first use the general function `toTable()` to convert the internal data object to a data frame.
+
+
+
+```r
+gene_type_table = toTable(org.Hs.egGENETYPE)
+head(gene_type_table)
+#   gene_id      gene_type
+# 1       1 protein-coding
+# 2       2 protein-coding
+# 3       3         pseudo
+# 4       9 protein-coding
+# 5      10 protein-coding
+# 6      11         pseudo
+```
+
+Then select genes of which the correpsonding type is "protein-coding".
+
+
+```r
+universe = gene_type_table$gene_id[gene_type_table$gene_type == "protein-coding"]
+length(universe)
+# [1] 20598
+```
+
+`GENETYPE` is also a valid keytype for directly querying `org.Hs.eg.db` database,
+
+```r
+select(org.Hs.eg.db, key = "protein-coding", keytype = "GENETYPE", column = "ENTREZID")
+```
+
+The next step is optional if you can make sure universe genes covers all DE genes and all genes in the gene set.
+
+
+```r
+diff_genes = intersect(diff_genes, universe)
+gene_set = intersect(gene_set, universe)
+```
+
+Now we have vectors of DE genes, gene set, and universe genes. We can calculate values in the 2x2 contigency table.
+We first calculate values for $n_{1+}$, $n_{+1}$, $n$ and $n_{11}$. All other values can be easily calculated based on 
+these four values.
+
+
+```r
+length(diff_genes)                       # n_1+
+# [1] 842
+length(gene_set)                        # n_+1
+# [1] 764
+length(universe)                        # n
+# [1] 20598
+length(intersect(diff_genes, gene_set))  # n_11
+# [1] 58
+```
+
+The 2x2 contigency table for the GO gene sets is as follows. Next I will demonstrate how to calcualte p-values from various
+statistical test in prevous sections.
+
+|        | In the gene set | Not in the gene set |    Total |
+|--------|-----------------|---------------------|----------|
+| DE     |    58           |       779           |     837  |
+| Noe DE |    706          |       19055         |    19761 |
+|Total   |    764          |       19834         |    20598 |
+
 
 The function `phyper()` calculates the p-value from hypergeometric distribution. The usage of
 `phyer()` is:
 
 ```r
-phyper(q, m, n, k)
+phyper(q, m, n, k, lower.tail = FALSE)
 ```
 
-In ORA, `q` is the number of differnetial genes in the gene set, `m` is the size of the gene set,
-`n` is the number of genes not in the gene set, `k` is the number of differnetial genes. since the hypergeometric can also be calcualted from the other dimension, `m` can be the number of differneital genes, `n` is the number of non-diff genes and `k` is the number of genes in the gene set.
+In ORA, `q` is the number of differential genes in the gene set, `m` is the size of the gene set,
+`n` is the number of genes not in the gene set, `k` is the number of
+differnetial genes. One thing that should be careful is the p-value calculated by
+`phyper()` corresponds to the probabilty of $Pr(X > q)$ which does not inlcude the p-value
+when $X = q$, thus, to calculate the p-value which also includes the scenario of $X = q$, we need
+to slightly modify the previous use of `phyper()` by substract 1 so that $Pr(X > q-1) = Pr(X \ge q)$.
 
-By default `phyper()` calculates the probabilty of Pr(X <= q)
+By default in `hyper()`, the argumnet `lower.tail` is set to `TRUE` which calculates $Pr(X \le q)$, we need
+to explicitely ..
+
+```r
+phyper(q - 1, m, n, k, lower.tail = FALSE)
+```
+
+Now we fill the values in the contigency table to the function call.
+
+
+```r
+phyper(58 - 1, 764, 19834, 837, lower.tail = FALSE)
+# [1] 3.75562e-06
+```
+
+Readers may ask is `phyper(q, m, n, k, lower.tail = TRUE)` always identical to `1 - phyper(q, m, n, k, lower.tail = FALSE)`.
+For very small p-values, the second one will return zero because the ...
 
 
 
 ```r
-1 - phyper(14 - 1, 200, 38392, 968)
-# [1] 0.0005686084
+phyper(100, 764, 19834, 837, lower.tail = FALSE)
+# [1] 3.194366e-26
+1 - phyper(100, 764, 19834, 837, lower.tail = TRUE)
+# [1] 0
 ```
 
-Note it is the same as 
+So to get a more meaningful p-value, it is suggested to use `lower.table = FALSE`.
+
+since the hypergeometric can also be calcualted from the
+other dimension, `m` can be the number of differneital genes, `n` is the
+number of non-diff genes and `k` is the number of genes in the gene set.Note it is the same as 
 
 
 ```r
-phyper(14 - 1, 200, 38392, 968, lower.tail = FALSE)
-# [1] 0.0005686084
-```
-
-
-```r
-1 - phyper(14 - 1, 968, 37624, 200)
-# [1] 0.0005686084
+phyper(58 - 1, 837, 19761, 764, lower.tail = FALSE)
+# [1] 3.75562e-06
 ```
 
 P-value from Binominal distribution can be calcualted with the function `pbinom()`. The usage is
 
 ```r
-pbinom(q, size, prob)
+pbinom(q - 1, size, prob, lower.tail = FALSE)
 ```
+
+`q` is the number of DE genes in the gene set, `size` is the total number of genes in the gene set, `prob` is
+the successful rate for the binomial distribution, here it is the background probabiliyt of DE genes. Similarly,
+we substract 1 form the original `q` and taking teh upper tail.
+
+Let's fill the values into the function call.
+
+
+```r
+pbinom(58 - 1, 764, 837/20598, lower.tail = FALSE)
+# [1] 6.032068e-06
+```
+
+We can also calculate from the other dimension. In this case, `size` is the total number of DE genes, and prob
+is the probability of a genes being in teh gene set.
 
 
 
 ```r
-1 - pbinom(14 - 1, 200, 968/38592)
-# [1] 0.0005919725
+pbinom(58 - 1, 837, 764/20598, lower.tail = FALSE)
+# [1] 6.315109e-06
 ```
 
+Since the binomial distribution is an approximation of the hypergenometric distribution, p-values form two different dimensions are slighly 
+different.
+
+
+To calculate the z-test, we first calculate $p_1$ and $p_2$ which are the probability of genes being DE in teh gene set
+and not in the gene set. ALso the pool probability.
 
 
 ```r
-1 - pbinom(14 - 1, 968, 200/38592)
-# [1] 0.0006924557
+p1 = 58/764     # prob of genes being DE in the gene set
+p2 = 779/19834  # prob of genes being DE not in the gene set
+p = 837/20598   # prob of genes being DE in total
 ```
 
-
-To calculate the z-test, we first calculate p1 and p2
+Following the formula of z-score, we have:
 
 
 ```r
-p1 = 14/200
-p2 = 954/38392
-p = 968/38592
-
-z = abs(p1 - p2)/sqrt(p * (1-p))/sqrt(1/200 + 1/38392)
+z = abs(p1 - p2)/sqrt(p * (1-p))/sqrt(1/764 + 1/19834)
 ```
 
-Since z follows a standard normal distribution, we can use `pnorm()` to calcualte p-value:
+Since $z$ follows a standard normal distribution, we can use `pnorm()` to calcualte p-value.
+Here we assume the z-test is a two-sided test, thus the p-value is $Pr(X > z) + Pr(X < -z)$.
 
 
 ```r
 2*pnorm(z, lower.tail = FALSE)
-# [1] 4.647219e-05
+# [1] 4.820302e-07
 ```
 
 We can also try to calculate the p-valeu from other other direction. similarly, 
@@ -299,49 +521,51 @@ We can also try to calculate the p-valeu from other other direction. similarly,
 
 
 ```r
-p1 = 14/968
-p2 = 186/37624
-p = 200/38592
+p1 = 58/837    # prob of being a gene set gene in the DE list
+p2 = 706/19761 # prob of being a gene set gene in the non-DE list
+p = 764/20598  # prob of being a gene set gene in total
 
-z = abs(p1 - p2)/sqrt(p * (1-p))/sqrt(1/968 + 1/37624)
+z = abs(p1 - p2)/sqrt(p * (1-p))/sqrt(1/837 + 1/19761)
 2*pnorm(z, lower.tail = FALSE)
-# [1] 4.647219e-05
+# [1] 4.820302e-07
 ```
 
 The two p-values are identical.
 
 
-Fisher's exact test can be directly performed by the function `fisher.test()`. The input is the 2x2 contigency table without the margins.
-
+Fisher's exact test can be directly performed by the function `fisher.test()`.
+The input is the 2x2 contigency table without the margins. In the following code,
+transforming the matrix gives identical result.
 
 
 ```r
-cm = matrix(c(14, 186, 954, 37438), nrow = 2)
+cm = matrix(c(58, 779, 706, 19055), nrow = 2)
 cm
 #      [,1]  [,2]
-# [1,]   14   954
-# [2,]  186 37438
+# [1,]   58   706
+# [2,]  779 19055
 fisher.test(cm)
 # 
 # 	Fisher's Exact Test for Count Data
 # 
 # data:  cm
-# p-value = 0.0005686
+# p-value = 5.513e-06
 # alternative hypothesis: true odds ratio is not equal to 1
 # 95 percent confidence interval:
-#  1.577790 5.106564
+#  1.495845 2.656573
 # sample estimates:
 # odds ratio 
-#   2.953612
+#    2.00944
 ```
 
-`fisher.test()` generates many other results, here the odd ratio is the statistic of fisher exact test. The odd ratio is defined as
+`fisher.test()` generates many other results, here the odd ratio is the
+statistic of fisher exact test. The odd ratio (OD) is defined as
 
-$$ \mathrm{odd ratio} = \frac{n_{11}}{n_{21}} / \frac{n_{11}}{n_{22}} = \frac{n_{11}n_{22}}{n_{12}n_{21}} $$
+$$ \mathrm{OD} = \frac{n_{11}}{n_{21}} / \frac{n_{11}}{n_{22}} = \frac{n_{11}n_{22}}{n_{12}n_{21}} $$
 
 which is the ratio of fraction of DE in the gene set and not in the gene set. If odd ratio is larger than 1, over-representation.
 
-Last, the Chi-square test can be applied with the function `chisq.test()`. Similarly the input is the 2x2 contigency table without the margins. Note here we also set `correct = FALSE` so that ...
+Last, the Chi-square test can be applied with the function `chisq.test()`. Similarly the input is the 2x2 contigency table without the margins. Note here we also set `correct = FALSE` to perform the original Chi-square test.
 
 
 
@@ -351,57 +575,162 @@ chisq.test(cm, correct = FALSE)
 # 	Pearson's Chi-squared test
 # 
 # data:  cm
-# X-squared = 16.587, df = 1, p-value = 4.647e-05
+# X-squared = 25.334, df = 1, p-value = 4.82e-07
 ```
+
+If we compare the Chi-square statistic to the previous $z$, we can see there is a relation of $chisq = z^2$.
 
 
 ```r
 z^2
-# [1] 16.58685
+# [1] 25.33442
 ```
 
-Since there are several ways to perform the test, it would be interesting to test which method runs faster.
+Since there are several ways to perform the ORA test, it would be interesting to test which method runs faster.
+In the following code, I used the **microbenchmark** package which benchmark pieces of codes with higher precision.
 
 
 ```r
 library(microbenchmark)
 
 microbenchmark(
-    hyper = 1 - phyper(13, 200, 38392, 968),
+    hyper = phyper(58 - 1, 764, 19834, 837, lower.tail = FALSE),
     fisher = fisher.test(cm),
-    binom = 1 - pbinom(13, 968, 200/38592),
+    binom = pbinom(58 - 1, 764, 837/20598, lower.tail = FALSE),
     chisq = chisq.test(cm, correct = FALSE),
     ztest = {
-        p1 = 14/200
-        p2 = 954/38392
-        p = 968/38592
+        p1 = 58/764
+        p2 = 779/19834
+        p = 837/20598
 
-        z = abs(p1 - p2)/sqrt(p*(1-p))/sqrt(1/200 + 1/38392)
+        z = abs(p1 - p2)/sqrt(p * (1-p))/sqrt(1/764 + 1/19834)
+
         2*pnorm(z, lower.tail = FALSE)
     },
     times = 1000
 )
 # Unit: nanoseconds
-#    expr    min       lq       mean   median       uq     max neval
-#   hyper   1031   1516.0   2329.873   2260.0   2732.5   19968  1000
-#  fisher 540446 598454.5 758361.569 673342.0 766916.0 9210045  1000
-#   binom    892   1378.0   2464.715   2211.5   2911.5   17332  1000
-#   chisq  41682  54386.5  65848.841  60956.5  72679.0  220583  1000
-#   ztest   1972   3069.5   4950.159   4497.0   5584.0   47668  1000
+#    expr    min        lq        mean    median        uq       max neval
+#   hyper   1129    1698.0    2493.252    2533.5    3032.0     18874  1000
+#  fisher 996610 1136764.5 1645767.922 1206255.0 1398183.0 191658211  1000
+#   binom    999    1529.5    2461.760    2361.0    3107.0     17015  1000
+#   chisq  41947   53769.0   63229.380   62469.0   70764.5    142784  1000
+#   ztest   2079    2923.0    4551.284    4562.0    5550.0     23784  1000
 ```
 
-We can see from the benchmark result, hypergeometric and bionimal distribution-based method are the fastest. As a comparison,
-Chi-square test and fisher's method run slow, especially for fisher's exact method. The reason is the latter two also include
-many other calculations besides p-values. This benchmark results actually tells us, if in the future readers want to implement 
-ORA analysis by their own, hypergeometric and bimonial methods should be considered firstly.
+We can see from the benchmark result, hypergeometric and bionimal
+distribution-based method are the fastest. As a comparison, Chi-square test
+and fisher's method run slow, especially for fisher's exact method. The reason
+is the latter two also include many other calculations besides p-values. This
+benchmark results actually tells us, if in the future readers want to
+implement ORA analysis by their own, hypergeometric and bimonial methods
+should be considered firstly.
 
-|   Method | p-value |
-|----------|---------|
-| Hypergeometric distribution | 0.0005686 (exact p-value) |
-| Fisher's exact test |  0.0005686 (exact p-value) |
-| Binomial distribution | 0.0005920 / 0.0006924 |
-| z-test | 0.0000465 |
-| Chi-square test | 0.0000465 |
+Assume genes are independent and can be picked with equal probabiliyt, hypergeometric or fisher's exact test 
+gives the exact distribution without approximation.
+
+
+## Implement ORA in R
+
+As has been demonstarted, it is more recommand to use hypergeometric distribution to calculate p-values.
+
+To implement an function that performs ORA anlaysis, a natrual thought is first implement a `ora_single()` which
+performs ORA for a single gene set, and a wrapper function `ora()` which applies `ora_single()` to every gene set.
+
+In the following, I assume the gene sets is represented as a list of vectors where each vector corresponds
+to a gene set. Also I assume genes in the DE gene list, in teh gene sets and in teh backgorund are already in teh same gene ID type.
+
+Next code demonstrates how to implement `ora_single()`. Given the three argument `genes`, `gene_set`, `universe` which are three character
+vectors, we just need to calculate the numbers for `phyer()`.
+
+
+
+```r
+ora_single = function(genes, gene_set, universe) {
+    n_universe = length(universe)
+
+    x = length(intersect(genes, gene_set))
+    m = length(gene_set)
+    n = n_universe - m
+    k = length(genes)
+
+    phyper(x - 1, m, n, k, lower.tail = FALSE)
+}
+ora_single(diff_genes, gene_set, universe)
+# [1] 4.504578e-06
+```
+
+Next we implement `ora()`. `ora()` is a rather simple function which basically apply `ora_single()` to every gene sets. In the 
+following code, use of `sapply()` can also be replaced by a `for` loop.
+
+P-values are the most important output from the analysis. In `ora()`, to make the output more informative, we can reformat the output
+as a data frame and add more columns there.
+
+```r
+ora = function(genes, gene_sets, universe) {
+    sapply(gene_sets, ora_single)
+}
+```
+
+`ora()` can already do a great job of full functional for ORA analysis. The next version is an improved one
+
+1. As I have introduced previously, gene sets can be represented in both lists of data frames. Here the improved
+vesion supports both list and data frames as input. If the input is the data frame, it will be converetd to a list internally.
+Note, if the gene sets are in a data frame, the first column should be gene set names and teh second column should be genes.
+
+2. Sometimes users do not know what "background" to provide. 
+
+3. DE genes, gene sets and background genes sometimes come from differnet sources. It is not already ensured the background
+genes include all DE genes and gene sets. these two lines of code actually do intersection of DE genes and gene sets to. Note these
+two lines are the most time comsuing part in this function.
+
+4. being different from `ora_single()`, we run `phyer()` in an vectorized way where the first four argument can all be vectors. This means, 
+we can first calculate xxx as vectors then calculate ... simultanuously, without using a `sapply()` or `for` loop. because xxx is normally slower
+than directly vectorizing the calculation.
+
+5. we add more columns to the result table, 
+
+
+
+```r
+ora = function(genes, gene_sets, universe) {
+    # 1
+    if(is.data.frame(gene_sets)) {
+        gene_sets = gs_dataframe2list(gene_sets)
+    }
+    # 2
+    if(missing(universe)) {
+        universe = unique(unlist(gene_sets))
+    } else {
+        universe = unique(universe)
+    }
+    # 3
+    gs_names = names(gene_sets)
+    genes = intersect(genes, universe)
+    gene_sets = lapply(gene_sets, function(x) intersect(x, universe))
+
+    n_universe = length(universe)
+    n_genes = length(genes)
+    #4
+    x = sapply(gene_sets, function(x) length(intersect(x, genes)))
+    m = sapply(gene_sets, length)
+    n = n_universe - m
+    k = n_genes
+    p = phyper(x - 1, m, n, k, lower.tail = FALSE)
+    # 5
+    data.frame(gene_set = gs_names, 
+               hits = x,
+               gene_set_size = m,
+               ratio_in_gene_set = x/m,
+               ratio_in_genes = x/n_genes,
+               enrichment_score = x*n_universe/m/n_genes,
+               p_value  = p,
+               p_adjust = p.adjust(p, "BH"))
+}
+```
+
+The new version `ora()` is a general-purpose function. It has no assumption of specific organism and gene sets. ... In the following part
+of this book, we will use `ora()` xxx
 
 
 ## Current tools
@@ -412,158 +741,116 @@ web-based tools are in a two-step analysis. 1. upload the gene lists and setting
 In this section, we will go through three web-based ORA tools, as well as one Bioconductor package.
 
 
+### Online tools
 
-```r
-load("data/demo_ora.RData")
-```
+There are quite a lot of web-based tools for ORA analysis. 
+
+### Perform ORA with clusterProfiler
+
+The **clusterProfiler** is the most widely used R packages for gene set enrichment anlaysis. Since it is implemnented
+as an R package, it can easily integerate into the bioconductor annotation ecosystem for the most up-to-date and
+rich data.
+
+First let's load the package.
 
 
 ```r
 library(clusterProfiler)
 ```
 
-**You need to make sure the gene IDs are Entrez IDs.** The following function
-helps to automatically convert gene IDs to Entrez IDs. The input can be a vector
-of genes or a gene expression matrix.
+#### Gene ontology enrichment
 
-
-We convert the diff genes `diff_gene` to Entrez IDs. Note some genes are lost 
-due to the conversion.
+The function `enrichGO()` applies ORA on GO gene sets. The two mandatory arguments
+are the gene vector and the name of the corresponding organism package. On Bioconductor,
+there are a variaty organism packages. 
 
 
 ```r
-head(diff_gene)
-# [1] "FGR"    "NIPAL3" "LAP3"   "CASP10"
-diff_gene = convert_to_entrez_id(diff_gene)
-# testing org.Hs.egENSEMBL...
-# testing org.Hs.egREFSEQ...
-# testing org.Hs.egSYMBOL...
-#   gene id might be SYMBOL (p = 1.000)
-head(diff_gene)
-# [1] "2268"  "57185" "51056" "843"
-length(diff_gene)
-# [1] 963
+tb = enrichGO(gene = diff_genes, OrgDb = "org.Hs.eg.db", ont = "BP")
 ```
 
-Next we perform ORA on different gene sets
-
-1. GO enrichment
-
+As has been introduced in Chapter x, in organism package, there is a database object
+with the same name as the package. The database object can be directly set to `OrgDb` argument.
+But note, of course you need to load the corresponding organism package first.
 
 ```r
 library(org.Hs.eg.db)
-tb = enrichGO(gene = diff_gene, ont = "BP", OrgDb = org.Hs.eg.db)
-head(tb)
-#                    ID                   Description GeneRatio   BgRatio
-# GO:0006959 GO:0006959       humoral immune response    70/849 317/18800
-# GO:0002443 GO:0002443   leukocyte mediated immunity    80/849 457/18800
-# GO:0002253 GO:0002253 activation of immune response    73/849 386/18800
-# GO:0006909 GO:0006909                  phagocytosis    65/849 310/18800
-#                  pvalue     p.adjust       qvalue
-# GO:0006959 3.286195e-29 1.664786e-25 1.327969e-25
-# GO:0002443 4.867621e-26 9.919090e-23 7.912271e-23
-# GO:0002253 5.873918e-26 9.919090e-23 7.912271e-23
-# GO:0006909 7.862052e-26 9.957289e-23 7.942741e-23
-#                                                                                      geneID
-# GO:0006959 6556/729/2920/2219/4069/54209/730249/6347/3458/5967/729230/722/725/5266/6590/5..
-# GO:0002443 2268/4843/7305/57823/729/50943/7037/3383/54209/50487/51311/10312/57379/10384/8..
-# GO:0002253 2268/7305/11119/729/50943/2219/58484/54209/3055/80381/10384/2633/8013/722/725/..
-# GO:0006909 2268/23221/7305/6556/2219/54209/10326/3055/1089/6347/3458/4688/729230/722/725/..
-#            Count
-# GO:0006959    70
-# GO:0002443    80
-# GO:0002253    73
-# GO:0006909    65
+enrichGO(gene = diff_genes, OrgDb = org.Hs.eg.db, ont = "BP")
 ```
 
-2. KEGG enrichment
+Entrez ID is the primary gene ID type in the organism packages. If the ID type of the input gene
+list is already in EntreZ ID, that is all you need to set with `enrichGO()`. But if the ID
+type is something else, but supported in the organism package, such as `SYMBOL` or `ENSEMBL`, they
+can be set with teh `keytype` argument and internally they will be converted. If the ID tyep is not
+supported in teh organism package, you have to look for other resources to convert to Entrez IDs
+manually.
 
+Background genes are important for ORA analysis. You can also set the background genes
+with teh `universe` argument in `enrichGO()`. If it is not specified, background genes will
+be all genes in the gene set collections. In Section x, I will talk about the effect of selecting
+different background genes in ORA.
+
+Argument `ont` controls which GO ontology to use. The default value is `MF`, here I set it to `BOP`.
+
+The value returned by `enrichGO()` is a table-like object. Let's print the first several rows
+of the result table. The output may look slightly different if you try it on your xxx. 
 
 
 ```r
-tb = enrichKEGG(gene = diff_gene, organism = "hsa")
 head(tb)
-#                ID                                                   Description
-# hsa04060 hsa04060                        Cytokine-cytokine receptor interaction
-# hsa04061 hsa04061 Viral protein interaction with cytokine and cytokine receptor
-# hsa04657 hsa04657                                       IL-17 signaling pathway
-# hsa04380 hsa04380                                    Osteoclast differentiation
-#          GeneRatio  BgRatio       pvalue     p.adjust       qvalue
-# hsa04060    50/444 295/8163 2.729086e-13 8.432876e-11 7.382896e-11
-# hsa04061    27/444 100/8163 1.587721e-12 2.453029e-10 2.147601e-10
-# hsa04657    25/444  94/8163 1.564758e-11 1.611701e-09 1.411027e-09
-# hsa04380    29/444 128/8163 2.724722e-11 2.104848e-09 1.842773e-09
-#                                                                                    geneID
-# hsa04060 53832/608/2920/3595/3589/5008/1440/6354/6347/55801/3458/3552/7850/9173/8809/88..
-# hsa04061 53832/2920/6354/6347/8809/8807/729230/6372/51554/3569/4283/56477/3577/2921/637..
-# hsa04657 5743/2920/1440/6354/6347/3458/727897/6372/3553/2354/3569/4322/6279/3934/4314/6..
-# hsa04380 7305/54209/10326/54/11024/3458/3552/6772/2274/4688/8503/3553/2354/10288/7006/2..
-#          Count
-# hsa04060    50
-# hsa04061    27
-# hsa04657    25
-# hsa04380    29
+#           ID            Description GeneRatio   BgRatio       pvalue
+# 1 GO:0001819 positive regulation ..    79/787 486/18903 7.437659e-26
+# 2 GO:0019221 cytokine-mediated si..    74/787 496/18903 5.900976e-22
+# 3 GO:0032103 positive regulation ..    71/787 464/18903 9.629161e-22
+# 4 GO:0031349 positive regulation ..    56/787 307/18903 5.042886e-21
+#       p.adjust       qvalue                 geneID Count
+# 1 3.824444e-22 2.972715e-22 2268/4843/7305/6556/..    79
+# 2 1.517141e-18 1.179263e-18 53832/608/51208/2920..    74
+# 3 1.650438e-18 1.282875e-18 7305/8692/3430/5743/..    71
+# 4 6.482630e-18 5.038904e-18 7305/8692/3430/5743/..    56
 ```
-3. Reactome enrichment
+
+`tb` is actually is a `enrichResult` object which is defined in **clusterProfiler**^[Actually it is defined
+in the **DOSE** packages. All these package share the same implementation, just focusing on different
+types of gene sets.], but it works prefectly with functions which expects a data frame as input, e.g. subsetting
+or `write.table()`. But because if you use `tb` as a data frame, it only contains significant terms. If want 
+the complete table no matter the term is significant or not, you can directly extract the `result` slot.
+
+
+```r
+full_table = tb@result
+```
+
+#### KEGG pathway enrichment
+
+In Chapter, I introduce how to obtain KEGG pathway gene sets directly from KEGG database. In
+**clusterProfiler**, there is also a `enrichKEGG()` function which automatically download
+pathway gene sets and perform ORA.
+
+To be consistent to KEGG IDs, genes are suggested already in Entrez ID types because it is used on KEGG. If not, please
+consider to convert to Entrez ID explicitely. The organism is set as a three letter code.
+
+
+```r
+tb = enrichKEGG(diff_genes, organism = "hsa")
+```
+
+#### Reactome pathway enrichment
+
+The package **ReactomePA** which utiliazed the same ORA implementaion as in **clusterProfiler** performs
+ORA on Reactome pathways. Again, as introduced in xx, the gene ID should already be in EntreZ IDs. Organism
+can be specified with the `organism` argument, but there is only a few organism suppoted on Reactome database.
 
 
 ```r
 library(ReactomePA)
-tb = enrichPathway(gene = diff_gene)
-head(tb)
-#                          ID                         Description GeneRatio
-# R-HSA-6798695 R-HSA-6798695            Neutrophil degranulation    72/591
-# R-HSA-6783783 R-HSA-6783783            Interleukin-10 signaling    21/591
-# R-HSA-380108   R-HSA-380108 Chemokine receptors bind chemokines    22/591
-# R-HSA-449147   R-HSA-449147           Signaling by Interleukins    64/591
-#                 BgRatio       pvalue     p.adjust       qvalue
-# R-HSA-6798695 482/10891 1.650320e-15 1.823604e-12 1.735442e-12
-# R-HSA-6783783  47/10891 6.254910e-15 3.455838e-12 3.288766e-12
-# R-HSA-380108   59/10891 1.330760e-13 4.901632e-11 4.664664e-11
-# R-HSA-449147  473/10891 6.856512e-12 1.894111e-09 1.802541e-09
-#                                                                                         geneID
-# R-HSA-6798695 2268/64386/5329/7305/55/6556/2219/4680/4069/5836/10326/10562/3614/10493/10312/..
-# R-HSA-6783783 5743/2920/3383/7076/1440/6347/942/3552/7850/729230/3553/3569/3557/2919/3627/57..
-# R-HSA-380108  2920/6354/6347/729230/6372/51554/4283/56477/58191/3577/2921/6374/5196/2919/362..
-# R-HSA-449147  4843/53832/3082/6196/5743/2920/3595/3383/3589/5008/3055/7076/1440/6347/595/558..
-#               Count
-# R-HSA-6798695    72
-# R-HSA-6783783    21
-# R-HSA-380108     22
-# R-HSA-449147     64
-```
-4. DO enrichment
-
-
-```r
-library(DOSE)
-tb = enrichDO(gene = diff_gene, ont = "DO")
-head(tb)
-#                  ID         Description GeneRatio  BgRatio       pvalue
-# DOID:403   DOID:403       mouth disease    52/504 188/8007 9.623979e-21
-# DOID:3388 DOID:3388 periodontal disease    44/504 139/8007 3.169110e-20
-# DOID:1091 DOID:1091       tooth disease    47/504 162/8007 8.987014e-20
-# DOID:850   DOID:850        lung disease    85/504 499/8007 3.419382e-18
-#               p.adjust       qvalue
-# DOID:403  7.574072e-18 3.717895e-18
-# DOID:3388 1.247045e-17 6.121386e-18
-# DOID:1091 2.357593e-17 1.157275e-17
-# DOID:850  6.727633e-16 3.302403e-16
-#                                                                                     geneID
-# DOID:403  4843/6401/3082/50943/5743/3595/5243/4069/3589/5008/7076/4210/5054/9126/6354/63..
-# DOID:3388 4843/6401/3082/50943/5743/3595/5243/4069/3589/5008/7076/5054/9126/6354/6347/34..
-# DOID:1091 4843/6401/3082/50943/5743/3595/5243/4069/3589/5008/7076/5054/9126/6354/6347/54..
-# DOID:850  4843/5329/6556/3082/50943/5743/3383/3589/3055/5054/6347/374/595/7450/59341/345..
-#           Count
-# DOID:403     52
-# DOID:3388    44
-# DOID:1091    47
-# DOID:850     85
+tb = enrichPathway(diff_genes, organism = "human")
 ```
 
-5. MSigDB enrichment
+#### MSigDB gene set enrichment
 
-There is no built-in function specific for MSigDB gene sets, but there is a universal function `enrichr()` which accepts
+There is no built-in function specific for MSigDB gene sets in **clusterProfiler**, 
+but **clusterProfiler** provides a general-purpose function `enrichr()` which accepts
 manually-specified gene sets. The gene sets object is simply a two-column data frame:
 
 - the first column is the gene set ID
@@ -571,43 +858,101 @@ manually-specified gene sets. The gene sets object is simply a two-column data f
 
 
 ```r
-library(msigdbr)
-gene_sets = msigdbr(category = "H")
-map = gene_sets[, c("gs_name", "entrez_gene")]
-
-tb = enricher(gene = diff_gene, TERM2GENE = map)
-head(tb)
-#                                                                    ID
-# HALLMARK_INTERFERON_GAMMA_RESPONSE HALLMARK_INTERFERON_GAMMA_RESPONSE
-# HALLMARK_INFLAMMATORY_RESPONSE         HALLMARK_INFLAMMATORY_RESPONSE
-# HALLMARK_INTERFERON_ALPHA_RESPONSE HALLMARK_INTERFERON_ALPHA_RESPONSE
-# HALLMARK_TNFA_SIGNALING_VIA_NFKB     HALLMARK_TNFA_SIGNALING_VIA_NFKB
-#                                                           Description GeneRatio
-# HALLMARK_INTERFERON_GAMMA_RESPONSE HALLMARK_INTERFERON_GAMMA_RESPONSE    55/348
-# HALLMARK_INFLAMMATORY_RESPONSE         HALLMARK_INFLAMMATORY_RESPONSE    54/348
-# HALLMARK_INTERFERON_ALPHA_RESPONSE HALLMARK_INTERFERON_ALPHA_RESPONSE    33/348
-# HALLMARK_TNFA_SIGNALING_VIA_NFKB     HALLMARK_TNFA_SIGNALING_VIA_NFKB    49/348
-#                                     BgRatio       pvalue     p.adjust
-# HALLMARK_INTERFERON_GAMMA_RESPONSE 200/4383 1.471098e-17 6.914161e-16
-# HALLMARK_INFLAMMATORY_RESPONSE     200/4383 7.383369e-17 1.735092e-15
-# HALLMARK_INTERFERON_ALPHA_RESPONSE  97/4383 9.355985e-14 1.465771e-12
-# HALLMARK_TNFA_SIGNALING_VIA_NFKB   200/4383 1.524722e-13 1.791549e-12
-#                                          qvalue
-# HALLMARK_INTERFERON_GAMMA_RESPONSE 5.264982e-16
-# HALLMARK_INFLAMMATORY_RESPONSE     1.321234e-15
-# HALLMARK_INTERFERON_ALPHA_RESPONSE 1.116153e-12
-# HALLMARK_TNFA_SIGNALING_VIA_NFKB   1.364225e-12
-#                                                                                                              geneID
-# HALLMARK_INTERFERON_GAMMA_RESPONSE 51056/57823/10797/3430/5743/3383/10135/6354/6347/6648/942/6772/29126/7130/8103..
-# HALLMARK_INFLAMMATORY_RESPONSE     6401/5329/2769/490/3383/5008/7076/4210/366/3249/6324/10135/3696/5054/1440/6354..
-# HALLMARK_INTERFERON_ALPHA_RESPONSE 51056/3430/135112/3659/6737/94240/8638/10906/2766/834/10561/83666/7453/10410/8..
-# HALLMARK_TNFA_SIGNALING_VIA_NFKB   5329/490/5743/2920/3383/10135/5054/6347/374/595/6648/1839/3552/5341/8013/1958/..
-#                                    Count
-# HALLMARK_INTERFERON_GAMMA_RESPONSE    55
-# HALLMARK_INFLAMMATORY_RESPONSE        54
-# HALLMARK_INTERFERON_ALPHA_RESPONSE    33
-# HALLMARK_TNFA_SIGNALING_VIA_NFKB      49
+msigdb_h  = get_msigdb(version = "2023.1.Hs", collection = "h.all", as_table = TRUE)
+head(msigdb_h)
+#                           gene_set gene
+# 1 HALLMARK_TNFA_SIGNALING_VIA_NFKB 3726
+# 2 HALLMARK_TNFA_SIGNALING_VIA_NFKB 2920
+# 3 HALLMARK_TNFA_SIGNALING_VIA_NFKB  467
+# 4 HALLMARK_TNFA_SIGNALING_VIA_NFKB 4792
+# 5 HALLMARK_TNFA_SIGNALING_VIA_NFKB 7128
+# 6 HALLMARK_TNFA_SIGNALING_VIA_NFKB 5743
+tb = enricher(gene = diff_genes, TERM2GENE = msigdb_h)
 ```
+
+
+### ORA on non-model organisms
+
+
+#### Organism with a OrgDb object
+
+
+```r
+enrichGO(gene_list, ont = "BP", OrgDb = "org.Rn.eg.db")
+enrichGO(gene_list, ont = "BP", OrgDb = org.Rn.eg.db)
+```
+
+```r
+org = ah[["AH108106"]]
+enrichGO(gene_list, ont = "BP", OrgDb = org)
+```
+
+```r
+ora(gene_list, 
+    get_go_gene_sets_from_orgdb(org, ontology = "BP"),
+    get_all_pc_genes_from_orgdb(org))
+```
+
+#### GO gene sets from BioMart
+
+```r
+...
+at = c("entrezgene_id", "go_id", "namespace_1003")
+tb = getBM(attributes = at, mart = ensembl)
+tb = tb[tb$namespace_1003 == "biological_process", ]
+enricher(gene_list, TERM2GENE = tb)
+```
+
+```r
+ora(gene_list, tb)
+```
+
+#### KEGG gene sets for other organisms
+
+
+```r
+enrichKEGG(gene_list, organism = "aml")
+```
+
+#### gene sets inferered from orthologues
+
+
+```r
+enricher(gene_list, TERM2GENE = gs_list2dataframe(gs_panda))
+ora(gene_list, gs_panda)
+```
+
+## Choose a proper background
+
+Background is important
+
+1. all genes in the genome
+2. all protein-coding genes
+3. all expressed protein-coding genes
+4. all genes that has a annotation in the gene set collection
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-30-1} \end{center}
+
+
+```r
+tb1 = ora(gene_list, gs, universe1)
+tb2 = ora(gene_list, gs, universe2)
+tb3 = ora(gene_list, gs, universe3)
+tb4 = ora(gene_list, gs, universe4)
+
+plot(euler(list(
+    universe1 = tb1$gene_set[tb1$p_adjust < 0.01],
+    universe2 = tb2$gene_set[tb2$p_adjust < 0.01],
+    universe3 = tb3$gene_set[tb3$p_adjust < 0.01],
+    universe4 = tb4$gene_set[tb4$p_adjust < 0.01]
+)))
+```
+
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-31-1} \end{center}
+
 
 
 ## Limitations of ORA
@@ -625,6 +970,29 @@ normally do not agree very well. The reasons are:
 4. Different methodd for control p-values
 5. differnet background genes.
 
+
+
+```r
+gene_list = mapIds(org.Hs.eg.db, keys = rownames(diff_tb)[order(diff_tb$p_adjust)], keytype = "ENSEMBL", column = "ENTREZID")
+gene_list = gene_list[!is.na(gene_list)]
+
+tb1 = ora(gene_list[1:128], gs, universe2)
+tb2 = ora(gene_list[1:256], gs, universe2)
+tb3 = ora(gene_list[1:512], gs, universe2)
+tb4 = ora(gene_list[1:1024], gs, universe2)
+
+plot(euler(list(
+    universe1 = tb1$gene_set[tb1$p_adjust < 0.01],
+    universe2 = tb2$gene_set[tb2$p_adjust < 0.01],
+    universe3 = tb3$gene_set[tb3$p_adjust < 0.01],
+    universe4 = tb4$gene_set[tb4$p_adjust < 0.01]
+)))
+```
+
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-32-1} \end{center}
+
 ### sensitive to the selection of background genes.
 
 Genome / all protein-coding gene / all genes measured?
@@ -633,21 +1001,6 @@ Note the ORA actually compares diff gene in the set to the ‘other gene’, and
 Select a “large” background may increase false positives.
 Select a “small” background may miss some positives, but it has low false positives.
 Also some arguments: If genes are not measured, they should not be put into the analysis.
-
-
-
-```r
-1 - phyper(13, 200, 38392, 968)
-# [1] 0.0005686084
-1 - phyper(13, 200, 38392 - 10000, 968)
-# [1] 0.008444096
-1 - phyper(13, 200, 38392 - 20000, 968)
-# [1] 0.1606062
-1 - phyper(13, 200, 38392 + 10000, 968)
-# [1] 5.473547e-05
-1 - phyper(13, 200, 38392 + 20000, 968)
-# [1] 7.140953e-06
-```
 
 In general, with larger background set, the p-value becomes significant. ORA 
 
@@ -660,22 +1013,12 @@ This is actually expected because as the sample size increases, the test power a
 
 
 ```r
-1 - pbinom(52, 100, 0.5)
-# [1] 0.3086497
-1 - pbinom(52, 1000, 0.5)
-# [1] 1
-1 - pbinom(52, 10000, 0.5)
-# [1] 1
+plot(tb1$enrichment_score, tb1$p_value, log = "xy", cex = sqrt(tb1$gene_set_size)/50)
 ```
 
 
 
-```r
-tb = read.table("data/david_result.txt", sep = "\t", header = TRUE)
-plot(tb$Pop.Hits, -log10(tb$PValue), xlab = "Gene set size", ylab = "-log10(p-value)")
-```
-
-<img src="03-ora_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" />
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-33-1} \end{center}
 
 
 ### Imbalanced contigency table
@@ -710,7 +1053,9 @@ popViewport()
 popViewport()
 ```
 
-<img src="03-ora_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-34-1} \end{center}
 
 In many cases when the gene set is small, the enrichment anlaysis will be sensitive to the value of number of 
 DE genes in the gene set, i.e., the valeu of $n_{11}$. 
@@ -718,13 +1063,29 @@ DE genes in the gene set, i.e., the valeu of $n_{11}$.
 
 
 ```r
-1 - phyper(13, 200, 38392, 968)
-# [1] 0.0005686084
-1 - phyper(13 - 3, 200, 38392, 968)
-# [1] 0.01263274
-1 - phyper(13 + 3, 200, 38392, 968)
-# [1] 1.35041e-05
+x = tb1$hits
+m = tb1$gene_set_size
+k = x/tb1$ratio_in_genes; k = k[!is.na(k)][1]
+n = tb1$enrichment_score*m*k/x; n = n[!is.na(n)][1] - m
+
+p = phyper(x - 1, m, n, k, lower.tail = FALSE)
+p1 = phyper(x - 1 - 2, m, n, k, lower.tail = FALSE)
+p2 = phyper(x - 1 + 2, m, n, k, lower.tail = FALSE)
+
+plot(p, p1, cex = sqrt(tb1$gene_set_size)/50)
 ```
+
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-35-1} \end{center}
+
+```r
+plot(p, p2, cex = sqrt(tb1$gene_set_size)/50)
+```
+
+
+
+\begin{center}\includegraphics{03-ora_files/figure-latex/unnamed-chunk-35-2} \end{center}
 
 In DE analysis, normally we set a cutoff of adjusted p-values for filter the significant DE genes, since
 the p-values are sensitive to $n_{11}$, actually xxx

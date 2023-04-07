@@ -39,9 +39,12 @@ to the lowest to form a sorted gene list.
 
 With the sorted gene list, for a specific gene set, an enrichment score can be calculated. The genes in the ranked list are put into two groups, in the gene set
 and not in the gene set. Denote there are total $n$ genes, $n_k$ is the number of genes in the gene set and $p$ is a certain position in the ranked list. For 
-genes in the gene set, we calcualte the fraction denoted as $F_{1p}$ at the position $p$:
+genes in the gene set, we calcualte the fraction denoted as $F_{1p}$ at the position $p$: 
+$$
+F_{1p} = \frac{1}{n_k}\sum_{i=1}^p I(g_i \in G)
+$$
 
-$$ F_{1p} = \frac{1}{n_k}\sum_{i=1}^p I(g_i \in G) $$
+
 
 where $I()$ is a identify function, $g_i$ is the gene at position $i$ and $G$ is the set of genes in the gene set. Similarly, for genes not in the gene set, we calculate a second fraction denoted as $F_{2p}$
 at position $p$:

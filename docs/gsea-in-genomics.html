@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 7 GSEA in Genomics | Gene Set Enrichment Analysis with R and Bioconductor</title>
+<meta name="author" content="Zuguang Gu">
+<meta name="generator" content="bookdown 0.32 with bs4_book()">
+<meta property="og:title" content="Chapter 7 GSEA in Genomics | Gene Set Enrichment Analysis with R and Bioconductor">
+<meta property="og:type" content="book">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 7 GSEA in Genomics | Gene Set Enrichment Analysis with R and Bioconductor">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.4.2/transition.js"></script><script src="libs/bs3compat-0.4.2/tabs.js"></script><script src="libs/bs3compat-0.4.2/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+<meta name="description" content="7.1 Overview Genomics and epigenomics studies always generate may lists of genomic regions of interest. For example, single-nucleotide variants (SNVs) or small insertion and deletions (InDels)...">
+<meta property="og:description" content="7.1 Overview Genomics and epigenomics studies always generate may lists of genomic regions of interest. For example, single-nucleotide variants (SNVs) or small insertion and deletions (InDels)...">
+<meta name="twitter:description" content="7.1 Overview Genomics and epigenomics studies always generate may lists of genomic regions of interest. For example, single-nucleotide variants (SNVs) or small insertion and deletions (InDels)...">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Gene Set Enrichment Analysis with R and Bioconductor</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled"><li><a class="" href="index.html"><span class="header-section-number">Chapter 7</span> GSEA in Genomics</a></li></ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/jokergoo/GSEA_book">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="gsea-in-genomics" class="section level1" number="7">
+<h1>
+<span class="header-section-number">7</span> GSEA in Genomics<a class="anchor" aria-label="anchor" href="#gsea-in-genomics"><i class="fas fa-link"></i></a>
+</h1>
+<div id="overview-4" class="section level2" number="7.1">
+<h2>
+<span class="header-section-number">7.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview-4"><i class="fas fa-link"></i></a>
+</h2>
+<p>Genomics and epigenomics studies always generate may lists of genomic regions
+of interest. For example, single-nucleotide variants (SNVs) or small insertion and deletions
+(InDels) from whole genome sequencing or exon sequencing, peak regions of a certain
+chromatin modifications or TFBS from ChIP-Sequencing data, or differetially methylated
+regions fro whole genome bisulfite sequencing. Once the regions are obtained, the next
+step is always functional intepretation. In this chapter, I will introduce the method
+that specifically applies on genomic regions for functional enrichment analysis.</p>
+</div>
+<div id="problem-of-ora-based-method" class="section level2" number="7.2">
+<h2>
+<span class="header-section-number">7.2</span> Problem of ORA-based method<a class="anchor" aria-label="anchor" href="#problem-of-ora-based-method"><i class="fas fa-link"></i></a>
+</h2>
+<p>Since the functional intepretation is based on genes, a natural thought is to first annotate genomic
+regions to genes, which generate a gene list, then to apply ORA on the gene list. The annotation to genes
+can be done by looking for the nearest genes of every region. If the regions are believed to affect gene
+transciprtion, they can also be annotated to the nearest gene TSS. In case some regions are too far from genes,
+a cutoff of the distance from regions to the nearest genes can be set.</p>
+<p>This conversion is very straightforward, however, let’s recall the null assumption of ORA. In ORA, genes are treated as balls and all genes have the same probability and independently to be picked. However, in the mapping from regions to genes, the mapping from regions to genes are not balanced. Let’s go back to the regions, actually, we assume, in the null hypotheiss, genomic regions are distrbuted uniformly in the genome, when converting to genes, due to somes regions locate in the gene desert and some reginos locates close to genes, this results in genes are not assigned wth the same probability to be picked. For exampe, if there is a clusters of regions close to a gene, then this genes is more likely to be picked. thus genes are with different weights. All these violates the null assumption of ORA. And such inproper comvertion will produce false positive results.</p>
+</div>
+<div id="the-great-method" class="section level2" number="7.3">
+<h2>
+<span class="header-section-number">7.3</span> The GREAT method<a class="anchor" aria-label="anchor" href="#the-great-method"><i class="fas fa-link"></i></a>
+</h2>
+<p>Recall the straighgy we proposed is to convert regions to genes, since it is not proper in the region to gene step, the tool GREAT proposes to directly constrcut region sets, which is a list of regions that associated to a biological term, then apply enrichment tests of input regions on the region set. This solves xxx. In the following sections, I will first intruduce how to construct such region sets and the enrichment tests.</p>
+<div class="inline-figure"><img src="figures/great_workflow.png"></div>
+<div id="construct-functional-genomic-domains" class="section level3" number="7.3.1">
+<h3>
+<span class="header-section-number">7.3.1</span> Construct functional genomic domains<a class="anchor" aria-label="anchor" href="#construct-functional-genomic-domains"><i class="fas fa-link"></i></a>
+</h3>
+<p>For a gene set, GREAT directly constructs such “region sets” (or genomic domains) that associate with individual biological functions. In GREAT, there are three modes of linking regions to genes</p>
+<div class="inline-figure"><img src="06-in-genomics_files/figure-html/unnamed-chunk-1-1.png" width="576" style="display: block; margin: auto;"></div>
+<ol style="list-style-type: decimal">
+<li><p>Basal plus extension</p></li>
+<li><p>Two nearest genes</p></li>
+<li><p>single nearest gene</p></li>
+</ol>
+</div>
+<div id="the-binomial-model" class="section level3" number="7.3.2">
+<h3>
+<span class="header-section-number">7.3.2</span> The binomial model<a class="anchor" aria-label="anchor" href="#the-binomial-model"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-figure"><img src="06-in-genomics_files/figure-html/unnamed-chunk-2-1.png" width="576" style="display: block; margin: auto;"></div>
+<p>The enrichment test is applied as follows. For a specific biological term represented as a gene set, denote the fraction of its associated functional domains in the genome (Fig. 1C) as p, the total number of input regions as N, the observed number of input regions that fall in the associated domains as n and the corresponding random variable as X, then X follows a binomial distribution: X ~ B(p, N) and the p-value of the enrichment is calculated as Pr(X ≥ n)</p>
+<p>Note in GREAT, input regions are treated as single points and their middle points are used.</p>
+<p>–|——|———|
+|region | gene
+p | width(x)/widht(genome) | N_geneset/n_genome
+N | N_region | n_DE gene
+x | region in domain | DE gene in gene set</p>
+</div>
+<div id="implementation" class="section level3" number="7.3.3">
+<h3>
+<span class="header-section-number">7.3.3</span> implementation<a class="anchor" aria-label="anchor" href="#implementation"><i class="fas fa-link"></i></a>
+</h3>
+<p>We first extend the gene TSS. In the following code, we take human genome versio hg19 as an example.
+In Bioconductor, there are also a list of “TxDb” packages which are standard Bioconductor
+packages for transcripts information for a specific genome build. Here the package
+<strong>TxDb.Hsapiens.UCSC.hg19.knownGene</strong> follows the naming skema as package_type.organism.source.genome.gene_id_type.</p>
+<p>All the TxDb packages are built with the core facility package <strong>GenomicFeatures</strong>, which provide
+functions to extract various transcipt level sof information. <code><a href="https://rdrr.io/pkg/GenomicFeatures/man/transcripts.html">genes()</a></code> extract the genomic coordinates of
+all genes.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">TxDb.Hsapiens.UCSC.hg19.knownGene</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/GenomicFeatures/man/transcripts.html">genes</a></span><span class="op">(</span><span class="va">TxDb.Hsapiens.UCSC.hg19.knownGene</span><span class="op">)</span></span>
+<span><span class="va">g</span></span>
+<span><span class="co"># GRanges object with 23056 ranges and 1 metadata column:</span></span>
+<span><span class="co">#        seqnames            ranges strand |     gene_id</span></span>
+<span><span class="co">#           &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;</span></span>
+<span><span class="co">#   1       chr19 58858172-58874214      - |           1</span></span>
+<span><span class="co">#   10       chr8 18248755-18258723      + |          10</span></span>
+<span><span class="co">#   ...       ...               ...    ... .         ...</span></span>
+<span><span class="co">#   9994     chr6 90539619-90584155      + |        9994</span></span>
+<span><span class="co">#   9997    chr22 50961997-50964905      - |        9997</span></span>
+<span><span class="co">#   -------</span></span>
+<span><span class="co">#   seqinfo: 93 sequences (1 circular) from hg19 genome</span></span></code></pre></div>
+<p>The gene variable <code>g</code> not only contains chromosomes, but also contains small contigs. This won’t affect
+the analysis too much, but to make the analysis clean. Let’s restrict <code>g</code> to the chromosomes.</p>
+<p>Note <code>g</code> also has a <code>gene_id</code> column which we will used to map to the gene set</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">=</span> <span class="va">g</span><span class="op">[</span><span class="fu">seqnames</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"chr"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">22</span>, <span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<p>I also reset the seqlevels</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">all_chr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"chr"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">22</span>, <span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">seqlevels</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">=</span> <span class="va">all_chr</span></span></code></pre></div>
+<p>To get the positions of TSS which is a one-base region, <code><a href="https://rdrr.io/pkg/IRanges/man/intra-range-methods.html">promoters()</a></code> regions by setting upstream extensions to zero
+and downstream extension to 1. Note the gene variable <code>g</code> is stranded, so the direction of upstream
+and downstream is automatically picked based on the strand in <code>g</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/intra-range-methods.html">promoters</a></span><span class="op">(</span><span class="va">g</span>, upstream <span class="op">=</span> <span class="fl">0</span>, downstream <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">tss</span></span>
+<span><span class="co"># GRanges object with 23033 ranges and 1 metadata column:</span></span>
+<span><span class="co">#        seqnames    ranges strand |     gene_id</span></span>
+<span><span class="co">#           &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;</span></span>
+<span><span class="co">#   1       chr19  58874214      - |           1</span></span>
+<span><span class="co">#   10       chr8  18248755      + |          10</span></span>
+<span><span class="co">#   ...       ...       ...    ... .         ...</span></span>
+<span><span class="co">#   9994     chr6  90539619      + |        9994</span></span>
+<span><span class="co">#   9997    chr22  50964905      - |        9997</span></span>
+<span><span class="co">#   -------</span></span>
+<span><span class="co">#   seqinfo: 24 sequences from hg19 genome</span></span></code></pre></div>
+<p>To extend TSS is a two-step process. First construct the basal domains, which extend 5kb upstream and 1kb downstream.
+THis can be donw also with <code><a href="https://rdrr.io/pkg/IRanges/man/intra-range-methods.html">promoters()</a></code> on the TSS.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">basal_domain</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/intra-range-methods.html">promoters</a></span><span class="op">(</span><span class="va">tss</span>, upstream <span class="op">=</span> <span class="fl">5000</span>, downstream <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></code></pre></div>
+<p>Construct the exteded domain is a little bit complex because we need to check whether the extension
+reached neighbour gene’s basal domains. SInce we need to compare to a gene’s left and right genes, let’s
+first sort the coordinate of <code>basal_domain</code>. Also after obtained the basal domains, teh strandness is not
+used anymore, here we set the strand of <code>basal_domains</code> to “*” to mark the regions are not stranded.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">strand</span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span> <span class="op">=</span> <span class="st">"*"</span></span>
+<span><span class="va">basal_domain</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span></span></code></pre></div>
+<p>To illustrate the process of extension, and easily explain the idea, from here we assume <code>basal_domain</code>
+only for one single chromosome. Note if you want to imeplement xx, teh next chunk of code should be applied
+to every chromsome.</p>
+<p>The thought is we first extend basal domains by 1mb both upstream and downstream, next
+we compare the neighbouring TSS, if it overlaps to the left gene’s basal domain, the start position
+the left basal domain is used as the start of the extension. Similar, if it overlaps to the right gene’s basal
+domain, the end positino …</p>
+<p>Step 1, we directly extend 1MB to the left and to the right. Note to make the code short, I assume the right extension
+does not reach teh end of hte chromosome and the start extension does not reach the start of the chromosome.
+In real case, you must additionally apply <code>left = pmax(left, 1)</code> and <code>right = pmin(right, chr_len)</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">extension</span> <span class="op">=</span> <span class="fl">1e6</span></span>
+<span><span class="co"># from here we assume `basal_domain</span></span>
+<span><span class="va">left</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/start.html">start</a></span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span> <span class="op">-</span> <span class="va">extension</span></span>
+<span><span class="va">right</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/start.html">end</a></span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span> <span class="op">+</span> <span class="va">extension</span></span></code></pre></div>
+<p>To compare the left, we start form teh second region, and to compre the right, we start from the first region,
+but only till the <code>n-1</code>th region.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">n</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span></span>
+<span><span class="va">left</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">pmax</a></span><span class="op">(</span><span class="va">left</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/stats/start.html">end</a></span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">right</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">pmin</a></span><span class="op">(</span><span class="va">right</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/stats/start.html">start</a></span><span class="op">(</span><span class="va">basal_domain</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<p>Now <code>left</code> and <code>right</code> contains borders of xxx. since each region corrspond to the same
+in <code>basal_domain</code>. We copy basal_domain, and directly change its start and end positions.
+Note the meta columns in <code>basal_domains</code> is als kept in <code>extended_tss</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">extended_tss</span> <span class="op">=</span> <span class="va">basal_domain</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/start.html">start</a></span><span class="op">(</span><span class="va">extended_tss</span><span class="op">)</span> <span class="op">=</span> <span class="va">left</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/start.html">end</a></span><span class="op">(</span><span class="va">extended_tss</span><span class="op">)</span> <span class="op">=</span> <span class="va">right</span></span></code></pre></div>
+<p>Step 2, construct the genomic domain that correspond to a gene set. Let’s random select
+100 genes as a gene set. SInce in <code>extended_tss</code> there is already a <code>gene_id</code> column,
+we can select the extened TSS for the genes in the gene set</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">gene_id</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">region_set</span> <span class="op">=</span> <span class="va">extended_tss</span><span class="op">[</span><span class="va">extended_tss</span><span class="op">$</span><span class="va">gene_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">gs</span><span class="op">]</span></span></code></pre></div>
+<p>The extneded Tss may overlap, here it is necessary to apply <code><a href="https://rdrr.io/pkg/IRanges/man/inter-range-methods.html">reduce()</a></code> to get a “flat”
+version.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">region_set</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/inter-range-methods.html">reduce</a></span><span class="op">(</span><span class="va">region_set</span><span class="op">)</span></span></code></pre></div>
+<p>Now <code>region_set</code> is teh regions in teh genome that associate to a certain gene set.</p>
+<p>Next we apply the binomial test with the region set.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/rGREAT">rGREAT</a></span><span class="op">)</span></span>
+<span><span class="va">gr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/randomRegions.html">randomRegions</a></span><span class="op">(</span>genome <span class="op">=</span> <span class="st">"hg19"</span><span class="op">)</span></span></code></pre></div>
+<p>In GREAT, only the middle point of the input regions are used. We first construct a <code>GRanges</code>
+object which contains the middle points of regions.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gr_mid</span> <span class="op">=</span> <span class="va">gr</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/start.html">start</a></span><span class="op">(</span><span class="va">gr_mid</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/start.html">end</a></span><span class="op">(</span><span class="va">gr_mid</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/IPosRanges-class.html">mid</a></span><span class="op">(</span><span class="va">gr</span><span class="op">)</span></span></code></pre></div>
+<p>We overlap <code>gr_mid</code> to the region set. This can be done with the standard overlapping function
+<code><a href="https://rdrr.io/pkg/IRanges/man/findOverlaps-methods.html">findOverlaps()</a></code>. the object returned by <code><a href="https://rdrr.io/pkg/IRanges/man/findOverlaps-methods.html">findOverlaps()</a></code> is a xx object. since each region in
+<code>region_set</code> does not overlap other regions and <code>gr_mid</code> only contains single base regions,
+the number of hits in the overlapping is the number of regions that fall in the genomic domain.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ov</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/findOverlaps-methods.html">findOverlaps</a></span><span class="op">(</span><span class="va">gr_mid</span>, <span class="va">region_set</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">n_total</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">gr</span><span class="op">)</span></span>
+<span><span class="va">n_hits</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">ov</span><span class="op">)</span></span></code></pre></div>
+<p>To get the probabiliyt of xxx, we need to divide the totla length of xx to the total length of genome.
+If the gene information is from teh TxDb package, the chromosome lengths information
+is already in teh <code>seqlengths</code> xx and can be obtained with the <code>seqlengths()</code> function. Recall
+we adjusted the seqlevels to teh normal chromsomes, teh chromosome lengths are adjusted automatically.
+If you don’t have such inforamtion, you have to look teh chromosme lengths for the
+corect genome version. UCSC and NCBI genome are two useful resource to xx.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">prop</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/start.html">width</a></span><span class="op">(</span><span class="va">region_set</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu">seqlengths</span><span class="op">(</span><span class="va">extended_tss</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>With all variables ready, we can simply apply <code><a href="https://rdrr.io/r/stats/Binomial.html">pbinom()</a></code> to calcualte the p-value.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">pbinom</a></span><span class="op">(</span><span class="va">n_hits</span> <span class="op">-</span> <span class="fl">1</span>, <span class="va">n_total</span>, <span class="va">prop</span>, lower.tail <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>The implementation is a little bit complex, the complex part is to construct the region set.</p>
+</div>
+<div id="the-hypergeometric-model-when-dealing-with-background" class="section level3" number="7.3.4">
+<h3>
+<span class="header-section-number">7.3.4</span> The hypergeometric model when dealing with background<a class="anchor" aria-label="anchor" href="#the-hypergeometric-model-when-dealing-with-background"><i class="fas fa-link"></i></a>
+</h3>
+<p>GREAT also supports background. Here the “background” is more like a universal sets or a super sets of input regions.
+To provide the background, it has a special format. Assume the background regions is a set of
+regions [xi, yi] with index set A.., the input regions can only be a list of intervals (xj, yj) where
+the the index set B is a subset of A. In this case…</p>
+<div class="inline-figure"><img src="06-in-genomics_files/figure-html/unnamed-chunk-9-1.png" width="576" style="display: block; margin: auto;"></div>
+<p>Such type of background/universal set is normally difficult to obtain. In Section x, I will introduce another
+background model where background is not a unversal set while more like a mask on the genome where the enrichment
+is only applied. I will also demonstrate the hypergenomic xx is a special case of the xx.</p>
+</div>
+<div id="the-web-based-tool" class="section level3" number="7.3.5">
+<h3>
+<span class="header-section-number">7.3.5</span> The web-based tool<a class="anchor" aria-label="anchor" href="#the-web-based-tool"><i class="fas fa-link"></i></a>
+</h3>
+<p>GREAT is implemented as a web-based tool. The use is very straightforward.</p>
+</div>
+<div id="the-rgreat-package" class="section level3" number="7.3.6">
+<h3>
+<span class="header-section-number">7.3.6</span> The rGREAT package<a class="anchor" aria-label="anchor" href="#the-rgreat-package"><i class="fas fa-link"></i></a>
+</h3>
+<p>GREAT web service is useful for xxx, but xxx. The rGREAT package can make
+GREAT analysis automatic by automaticlaly submitting genomic regions to GREAT
+web service and retrieve results from there on the fly. The several functions
+introduced later is to silmulate the process of xx teh website.</p>
+<p>I used a TFBS bind sites of the TFBS (JUN) from UCSC database…. I first read it into a data frame
+where the first three columns are the chromsomes, the start positinos oand the end
+positions of every peak regions of JUN.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bed</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="st">"data/tb_encTfChipPkENCFF708LCH_A549_JUN_hg19.bed"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">bed</span><span class="op">)</span></span>
+<span><span class="co">#     V1      V2      V3 V4   V5 V6</span></span>
+<span><span class="co"># 1 chr1  936221  936347  . 1000  .</span></span>
+<span><span class="co"># 2 chr1 1280252 1280492  .  480  .</span></span>
+<span><span class="co"># 3 chr1 2143913 2144153  .  982  .</span></span>
+<span><span class="co"># 4 chr1 4052186 4052426  .  544  .</span></span>
+<span><span class="co"># 5 chr1 4440698 4440938  .  837  .</span></span>
+<span><span class="co"># 6 chr1 7359438 7359678  .  493  .</span></span></code></pre></div>
+<div id="submit-regions" class="section level4" number="7.3.6.1">
+<h4>
+<span class="header-section-number">7.3.6.1</span> Submit regions<a class="anchor" aria-label="anchor" href="#submit-regions"><i class="fas fa-link"></i></a>
+</h4>
+<p>Just like the web interface, the only mandatory argumnet is the input regions. The input regions can
+also be in teh <code>GRanges</code> object. The two foramts are baically give identical information.</p>
+<p><code><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob()</a></code> automatically construct all necessary parameters and submit to the GREAT web service. Just like
+you clicked “submit” button in the web interface. After the job is successfually submitted, the returned object
+<code>job</code> contains the settings of the xxx.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">job</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob</a></span><span class="op">(</span><span class="va">bed</span><span class="op">)</span></span>
+<span><span class="va">job</span></span>
+<span><span class="co"># Submit time: 2023-04-07 09:34:07 </span></span>
+<span><span class="co">#   Note the results may only be avaiable on GREAT server for 24 hours.</span></span>
+<span><span class="co"># Version: 4.0.4 </span></span>
+<span><span class="co"># Species: hg19 </span></span>
+<span><span class="co"># Inputs: 1726 regions</span></span>
+<span><span class="co"># Mode: Basal plus extension </span></span>
+<span><span class="co">#   Proximal: 5 kb upstream, 1 kb downstream,</span></span>
+<span><span class="co">#   plus Distal: up to 1000 kb</span></span>
+<span><span class="co"># Include curated regulatory domains</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Enrichment tables for following ontologies have been downloaded:</span></span>
+<span><span class="co">#   None</span></span></code></pre></div>
+<p>A specific genome version for an organism should be set. By default it is hg19 for human genome.
+GREAT has several versions. The newest version is 4.0.4 released on 2019. It supports both hg19 and hg38. Other genomoes
+includes… Note it is very important to select teh correct genome version for the organism. In Section
+xx I will demonstrate the consequence of selecting the wrong genome version.</p>
+<p>The genome version can be set via the <code>species</code> argumetn</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob</a></span><span class="op">(</span><span class="va">bed</span>, species <span class="op">=</span> <span class="st">"hg38"</span><span class="op">)</span>  <span class="co"># assume bed is from hg38</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob</a></span><span class="op">(</span><span class="va">bed</span>, species <span class="op">=</span> <span class="st">"mm10"</span><span class="op">)</span>  <span class="co"># assume bed is from mm10</span></span></code></pre></div>
+<p><code><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob()</a></code> supports all historical versions of GREAT. Normally we use the newest version since the annotation
+is the newest. But when GREAT updates from version 3 to 4, many gene set collections are removed. So, if you want to
+use more gene set collections, you may need to swtich to older verison. This can be set via the <code>version</code> argument</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob</a></span><span class="op">(</span><span class="va">bed</span>, version <span class="op">=</span> <span class="st">"3.0"</span><span class="op">)</span></span></code></pre></div>
+<p>If by any chance, you also have the “background” universe set of the regions, you can set it with the <code>bg</code> argument.
+But remeber the format of the two xxx.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bed_subset</span> <span class="op">=</span> <span class="va">bed</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">bed</span><span class="op">)</span>, <span class="fl">500</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/submitGreatJob.html">submitGreatJob</a></span><span class="op">(</span><span class="va">bed_subset</span>, bg <span class="op">=</span> <span class="va">bed</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="obtain-enrichment-tables" class="section level4" number="7.3.6.2">
+<h4>
+<span class="header-section-number">7.3.6.2</span> obtain enrichment tables<a class="anchor" aria-label="anchor" href="#obtain-enrichment-tables"><i class="fas fa-link"></i></a>
+</h4>
+<p>Once the regions are successfully submitted. GREAT performs the analysis and temporary results will be on the
+GREAT website for some time, which other functions can automaticaly retrieve the result from there.
+GERAT applies analysis on all supported gene set collections. The function <code><a href="https://rdrr.io/pkg/rGREAT/man/getEnrichmentTables-dispatch.html">getEnrichmentTables()</a></code> downloads
+the complete result table for specific gene set collections.</p>
+<p>Calling <code><a href="https://rdrr.io/pkg/rGREAT/man/getEnrichmentTables-dispatch.html">getEnrichmentTables()</a></code> without argumetn downloads the enrichment tables for the three GO collectios, i.e.
+BP, MF and CC.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/getEnrichmentTables-dispatch.html">getEnrichmentTables</a></span><span class="op">(</span><span class="va">job</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span>
+<span><span class="co"># [1] "GO Molecular Function" "GO Biological Process" "GO Cellular Component"</span></span></code></pre></div>
+<p>Once the enrichment table is downloaded, it is cached. Repeatedly call <code><a href="https://rdrr.io/pkg/rGREAT/man/getEnrichmentTables-dispatch.html">getEnrichmentTables()</a></code> will directly use
+the table from cache and will not download it again. This is good because the results actally are temporary saved
+on the GREAT server. Once the tables are cached in the <code>job</code> object. It can be xxx</p>
+<p><code>tbl</code> is just a list of data frames, where each data frmae is xxx which is identical to the result if you submit
+the regions directly from GREAT web service (of course it is because all calculations are performed on GREAT).</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#           ID                           name Binom_Genome_Fraction</span></span>
+<span><span class="co"># 1 GO:0005515                protein binding            0.75150510</span></span>
+<span><span class="co"># 2 GO:0005488                        binding            0.86944070</span></span>
+<span><span class="co"># 3 GO:0019899                 enzyme binding            0.17198290</span></span>
+<span><span class="co"># 4 GO:0019900                 kinase binding            0.06564039</span></span>
+<span><span class="co"># 5 GO:0045296               cadherin binding            0.02779121</span></span>
+<span><span class="co"># 6 GO:0050839 cell adhesion molecule binding            0.04901075</span></span>
+<span><span class="co">#   Binom_Expected Binom_Observed_Region_Hits Binom_Fold_Enrichment</span></span>
+<span><span class="co"># 1     1297.09800                       1500              1.156428</span></span>
+<span><span class="co"># 2     1500.65500                       1628              1.084860</span></span>
+<span><span class="co"># 3      296.84260                        460              1.549643</span></span>
+<span><span class="co"># 4      113.29530                        206              1.818257</span></span>
+<span><span class="co"># 5       47.96764                        113              2.355755</span></span>
+<span><span class="co"># 6       84.59255                        162              1.915062</span></span>
+<span><span class="co">#   Binom_Region_Set_Coverage Binom_Raw_PValue Binom_Adjp_BH Hyper_Total_Genes</span></span>
+<span><span class="co"># 1                0.86906140     8.378648e-34  3.534952e-30             11129</span></span>
+<span><span class="co"># 2                0.94322130     4.881720e-24  1.029799e-20             14268</span></span>
+<span><span class="co"># 3                0.26651220     7.001972e-23  9.847107e-20              1885</span></span>
+<span><span class="co"># 4                0.11935110     2.376577e-16  2.378356e-13               647</span></span>
+<span><span class="co"># 5                0.06546929     2.818625e-16  2.378356e-13               304</span></span>
+<span><span class="co"># 6                0.09385863     8.118197e-15  5.708446e-12               461</span></span>
+<span><span class="co">#   Hyper_Expected Hyper_Observed_Gene_Hits Hyper_Fold_Enrichment</span></span>
+<span><span class="co"># 1     1360.75100                     1579              1.160389</span></span>
+<span><span class="co"># 2     1744.55900                     1873              1.073624</span></span>
+<span><span class="co"># 3      230.48030                      346              1.501213</span></span>
+<span><span class="co"># 4       79.10917                      134              1.693862</span></span>
+<span><span class="co"># 5       37.17031                       79              2.125352</span></span>
+<span><span class="co"># 6       56.36681                      114              2.022467</span></span>
+<span><span class="co">#   Hyper_Gene_Set_Coverage Hyper_Term_Gene_Coverage Hyper_Raw_PValue</span></span>
+<span><span class="co"># 1              0.69620810                0.1418816     2.492149e-24</span></span>
+<span><span class="co"># 2              0.82583770                0.1312728     1.339393e-12</span></span>
+<span><span class="co"># 3              0.15255730                0.1835544     2.887885e-16</span></span>
+<span><span class="co"># 4              0.05908289                0.2071097     3.499515e-10</span></span>
+<span><span class="co"># 5              0.03483245                0.2598684     3.394731e-11</span></span>
+<span><span class="co"># 6              0.05026455                0.2472885     6.033715e-14</span></span>
+<span><span class="co">#   Hyper_Adjp_BH</span></span>
+<span><span class="co"># 1  1.051438e-20</span></span>
+<span><span class="co"># 2  1.412725e-09</span></span>
+<span><span class="co"># 3  6.091993e-13</span></span>
+<span><span class="co"># 4  2.109208e-07</span></span>
+<span><span class="co"># 5  2.864474e-08</span></span>
+<span><span class="co"># 6  8.485415e-11</span></span></code></pre></div>
+<p>The columns on the enrichment are self-explorary. The columns are:</p>
+<ul>
+<li>ID</li>
+<li>name</li>
+<li>Binom_Genome_Fraction
+…</li>
+</ul>
+<p>All supported gene set collections can be obtained by <code>availableOntologies(job)</code>:</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/availableOntologies-GreatJob-method.html">availableOntologies</a></span><span class="op">(</span><span class="va">job</span><span class="op">)</span></span>
+<span><span class="co"># [1] "GO Molecular Function"     "GO Biological Process"    </span></span>
+<span><span class="co"># [3] "GO Cellular Component"     "Mouse Phenotype"          </span></span>
+<span><span class="co"># [5] "Mouse Phenotype Single KO" "Human Phenotype"          </span></span>
+<span><span class="co"># [7] "Ensembl Genes"</span></span></code></pre></div>
+<p>and the ontologies can be set in <code><a href="https://rdrr.io/pkg/rGREAT/man/getEnrichmentTables-dispatch.html">getEnrichmentTables()</a></code></p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/getEnrichmentTables-dispatch.html">getEnrichmentTables</a></span><span class="op">(</span><span class="va">job</span>, ontology <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"GO Biological Process"</span>, <span class="st">"Ensembl Genes"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="get-region-gene-associations" class="section level4" number="7.3.6.3">
+<h4>
+<span class="header-section-number">7.3.6.3</span> get region-gene associations<a class="anchor" aria-label="anchor" href="#get-region-gene-associations"><i class="fas fa-link"></i></a>
+</h4>
+<p>In the GREAT process, each extened TSS is associated to a gene. For a list of input regions,
+we can obtain the associations between regions and genes, i.e. whether the region (middle point)
+falls in the extended TSS of a gene. The function <code><a href="https://rdrr.io/pkg/rGREAT/man/getRegionGeneAssociations-dispatch.html">getRegionGeneAssociations()</a></code> returns an
+<code>GRanges</code> object of the associations between regions and genes. Note teh number of regions
+in the object may be less than the total number of input xxx because some regions are locate
+in teh gene desert…</p>
+<p>In teh meta column of xxx. You may see the column of <code>annotated_genes</code> and <code>dist_to_TSS</code> are in
+<code>Characterlist</code> and <code>IntegerList</code>…</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/getRegionGeneAssociations-dispatch.html">getRegionGeneAssociations</a></span><span class="op">(</span><span class="va">job</span><span class="op">)</span></span>
+<span><span class="co"># GRanges object with 1720 ranges and 2 metadata columns:</span></span>
+<span><span class="co">#          seqnames              ranges strand | annotated_genes    dist_to_TSS</span></span>
+<span><span class="co">#             &lt;Rle&gt;           &lt;IRanges&gt;  &lt;Rle&gt; | &lt;CharacterList&gt;  &lt;IntegerList&gt;</span></span>
+<span><span class="co">#   [1]        chr1       936221-936347      * |            HES4           -732</span></span>
+<span><span class="co">#   [2]        chr1     1280252-1280492      * |     DVL1,TAS1R3     4120,13678</span></span>
+<span><span class="co">#   ...         ...                 ...    ... .             ...            ...</span></span>
+<span><span class="co">#   [1719]     chrX 149369317-149369557      * |   MAMLD1,MAGEA8 -162249,359496</span></span>
+<span><span class="co">#   [1720]     chrX 153237211-153237451      * |   TMEM187,HCFC1       -447,-73</span></span>
+<span><span class="co">#   -------</span></span>
+<span><span class="co">#   seqinfo: 23 sequences from an unspecified genome; no seqlengths</span></span></code></pre></div>
+<p>The distributions can b</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/plotRegionGeneAssociations-dispatch.html">plotRegionGeneAssociations</a></span><span class="op">(</span><span class="va">job</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-in-genomics_files/figure-html/unnamed-chunk-16-1.png" width="1152" style="display: block; margin: auto;"></div>
+<p>THe associations can also be obtains for a specific gene set, just specigy the gene set collection
+and the corresponding gene set ID:</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/getRegionGeneAssociations-dispatch.html">getRegionGeneAssociations</a></span><span class="op">(</span><span class="va">job</span>, ontology <span class="op">=</span> <span class="st">"GO Molecular Function"</span>,</span>
+<span>    term_id <span class="op">=</span> <span class="st">"GO:0004984"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="visualizations-and-reports" class="section level4" number="7.3.6.4">
+<h4>
+<span class="header-section-number">7.3.6.4</span> visualizations and reports<a class="anchor" aria-label="anchor" href="#visualizations-and-reports"><i class="fas fa-link"></i></a>
+</h4>
+<p>Similar as differentiall expression analysis, the enrichment table can also be visualized as a
+volcano plot. Recall in the DE analysis, in the volcano, on x-axis is teh log2 fold change
+and on y-axis is the log10(p-value) or log10(FDR). Similar, we can calcualte the log2 enrichment rate as</p>
+<p><span class="math display">\[log2(obs/exp) \]</span></p>
+<p>where <code>obs</code> is the observed number of regions in the region set, and exp is calcualted as <span class="math inline">\(p*n\)</span>.
+The expected values is already in the enrichment table.</p>
+<p>Function <code><a href="https://rdrr.io/pkg/rGREAT/man/plotVolcano-dispatch.html">plotVolcano()</a></code> makes a volcano plot for a specific gene set collection. In
+the following example, we use hte “GO Biologucal Process.”</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/plotVolcano-dispatch.html">plotVolcano</a></span><span class="op">(</span><span class="va">job</span>, ontology <span class="op">=</span> <span class="st">"GO Biological Process"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-in-genomics_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;"></div>
+<p>THe volcano plot is actually “one-sided” because we only look at the over-representation. Similar
+as the differnetial expression analysis, we can set two cutoffs, one for the log2 enrichment ratio,
+and one for the log10 pvalue, i.e. one from biologucal aspect and one from statstical aspect.</p>
+<p>In teh plot, we can see it is composed by several curves. Each curve correspond to a same region hits.
+we also see xxx which we will explain in more detail in Section x.</p>
+<p>One last function to introuce is the <code><a href="https://rdrr.io/pkg/rGREAT/man/shinyReport-dispatch.html">shinyReport()</a></code> function which can create xxx</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/shinyReport-dispatch.html">shinyReport</a></span><span class="op">(</span><span class="va">job</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="local-great-analysis" class="section level2" number="7.4">
+<h2>
+<span class="header-section-number">7.4</span> Local GREAT analysis<a class="anchor" aria-label="anchor" href="#local-great-analysis"><i class="fas fa-link"></i></a>
+</h2>
+<p>As an online tool, all annotation resources are only controlled by GREAT
+developers; they are not extensible by users. The current version (4.0.4) of
+GREAT only supports human and mouse, and it only supports seven gene set
+collections which have not yet been updated to the most recent ones.</p>
+<p>Bioconductor has a rich and up-to-date annotation resource, also as I have
+demonstrated in sectionx, impleement the GREAT algorithm from scratch with
+Bioconductor facility package is not difficult, thus, in the <strong>rGREAT</strong>
+package, I also implement a “local GREAT” function, which greatly …</p>
+<p>On one hand, with local GREAT, it is possible to perform enrichment analysis
+on any organism and with any type of gene set collection; and on the other
+hand, Bioconductor annotation packages are well maintained and updated, which
+ensures that a local GREAT analysis always uses the most up-to-date annotation
+data. Local GREAT by default supports many gene set collections and more than
+600 organisms, and, more importantly, local GREAT allows self-provided gene
+sets and organisms from users.</p>
+<p>To demonstrate its use, I first convert the object <code>bed</code> to a <code>GRanges</code> object
+because …</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/GenomicRanges/man/GRanges-class.html">GRanges</a></span><span class="op">(</span>seqnames <span class="op">=</span> <span class="va">bed</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, ranges <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/IRanges-constructor.html">IRanges</a></span><span class="op">(</span><span class="va">bed</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, <span class="va">bed</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">gr</span></span>
+<span><span class="co"># GRanges object with 1726 ranges and 0 metadata columns:</span></span>
+<span><span class="co">#          seqnames            ranges strand</span></span>
+<span><span class="co">#             &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;</span></span>
+<span><span class="co">#   [1]        chr1     936221-936347      *</span></span>
+<span><span class="co">#   [2]        chr1   1280252-1280492      *</span></span>
+<span><span class="co">#   ...         ...               ...    ...</span></span>
+<span><span class="co">#   [1725]    chr22 43011250-43011490      *</span></span>
+<span><span class="co">#   [1726]    chr22 50364455-50364695      *</span></span>
+<span><span class="co">#   -------</span></span>
+<span><span class="co">#   seqinfo: 23 sequences from an unspecified genome; no seqlengths</span></span></code></pre></div>
+<p>The core function <code><a href="https://rdrr.io/pkg/rGREAT/man/great.html">great()</a></code> performs GREAT analysis locally. It used gene set and gene
+all from Biocondutor packages. The first three argumetns are teh input regions,
+the name of teh gene set collection, and the name/version of hte genome.</p>
+<p>In teh following example, the regions correspond to human genome hg19 and we use GO BP gene sets.
+The returned object prints parametes.</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/rGREAT/man/great.html">great</a></span><span class="op">(</span><span class="va">gr</span>, <span class="st">"GO:BP"</span>, <span class="st">"hg19"</span><span class="op">)</span></span>
+<span><span class="va">res</span></span>
+<span><span class="co"># 1726 regions are associated to 2268 genes' extended TSSs.</span></span>
+<span><span class="co">#   TSS source: TxDb.Hsapiens.UCSC.hg19.knownGene</span></span>
+<span><span class="co">#   Genome: hg19</span></span>
+<span><span class="co">#   OrgDb: org.Hs.eg.db</span></span>
+<span><span class="co">#   Gene sets: GO:BP</span></span>
+<span><span class="co">#   Background: whole genome excluding gaps</span></span>
+<span><span class="co"># Mode: Basal plus extension</span></span>
+<span><span class="co">#   Proximal: 5000 bp upstream, 1000 bp downstream,</span></span>
+<span><span class="co">#   plus Distal: up to 1000000 bp</span></span></code></pre></div>
+<div id="use-predefined-gene-sets-and-tss-sources" class="section level3" number="7.4.1">
+<h3>
+<span class="header-section-number">7.4.1</span> use predefined-gene sets and TSS sources<a class="anchor" aria-label="anchor" href="#use-predefined-gene-sets-and-tss-sources"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+<div id="use-self-defined-extended-tss" class="section level3" number="7.4.2">
+<h3>
+<span class="header-section-number">7.4.2</span> use self-defined extended TSS<a class="anchor" aria-label="anchor" href="#use-self-defined-extended-tss"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+<div id="use-self-defined-gene-sets" class="section level3" number="7.4.3">
+<h3>
+<span class="header-section-number">7.4.3</span> Use self-defined gene sets<a class="anchor" aria-label="anchor" href="#use-self-defined-gene-sets"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+<div id="use-both-self-defined-gene-sets-and-tss" class="section level3" number="7.4.4">
+<h3>
+<span class="header-section-number">7.4.4</span> Use both self-defined gene sets and TSS<a class="anchor" aria-label="anchor" href="#use-both-self-defined-gene-sets-and-tss"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+<div id="the-binomial-background-model" class="section level3" number="7.4.5">
+<h3>
+<span class="header-section-number">7.4.5</span> The binomial background model<a class="anchor" aria-label="anchor" href="#the-binomial-background-model"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">p5</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/grid.grab.html">grid.grabExpr</a></span><span class="op">(</span><span class="op">{</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.newpage.html">grid.newpage</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.lines.html">grid.lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.02</span>, <span class="fl">0.98</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"A"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.02</span>, <span class="st">"npc"</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">4</span>, <span class="st">"mm"</span><span class="op">)</span>, just <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">14</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">7</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">9</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">10</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="fl">0.13</span>, <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.12</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"cm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="fl">0.36</span>, <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.28</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"cm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="fl">0.68</span>, <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.12</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"cm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="fu">TeX</span><span class="op">(</span><span class="st">"$\\textit{p}_2 = 0.619$"</span><span class="op">)</span>, x <span class="op">=</span> <span class="fl">0.9</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">3</span>, <span class="st">"mm"</span><span class="op">)</span>, just <span class="op">=</span> <span class="st">"bottom"</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">p6</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/grid.grab.html">grid.grabExpr</a></span><span class="op">(</span><span class="op">{</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.newpage.html">grid.newpage</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.lines.html">grid.lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.02</span>, <span class="fl">0.98</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="st">"B"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.02</span>, <span class="st">"npc"</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">4</span>, <span class="st">"mm"</span><span class="op">)</span>, just <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">14</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">7</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">9</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">10</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">pos</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.05</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, <span class="va">pos</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">/</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"mm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.points.html">grid.points</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">20</span><span class="op">)</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">2</span>, <span class="st">"mm"</span><span class="op">)</span>, default.unit <span class="op">=</span> <span class="st">"npc"</span>, pch <span class="op">=</span> <span class="fl">25</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"blue"</span>, fill <span class="op">=</span> <span class="st">"blue"</span>, cex <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="fl">0.13</span>, <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.12</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"cm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="fl">0.36</span>, <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.28</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"cm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="fl">0.68</span>, <span class="fl">0.5</span>, width <span class="op">=</span> <span class="fl">0.12</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"cm"</span><span class="op">)</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grid/grid.text.html">grid.text</a></span><span class="op">(</span><span class="fu">TeX</span><span class="op">(</span><span class="st">"$Pr_{binom}(\\textit{X}_2 \\geq 8 | \\textit{N}_2 = 15, \\textit{p}_2 = 0.619)$"</span><span class="op">)</span>, x <span class="op">=</span> <span class="fl">0.75</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="st">"npc"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">5.5</span>, <span class="st">"mm"</span><span class="op">)</span>, just <span class="op">=</span> <span class="st">"bottom"</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fontsize <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/ComplexHeatmap">ComplexHeatmap</a></span><span class="op">)</span></span>
+<span><span class="va">lgd</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/Legend.html">Legend</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Genomic domains associated to a gene set"</span>, <span class="st">"Input regions"</span>, <span class="st">"Background regions"</span><span class="op">)</span>,</span>
+<span>    graphics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>        <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span><span class="op">)</span> <span class="op">{</span></span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/grid/grid.segments.html">grid.segments</a></span><span class="op">(</span><span class="va">x</span><span class="op">-</span><span class="va">w</span><span class="op">*</span><span class="fl">0.5</span>, <span class="va">y</span>, <span class="va">x</span><span class="op">+</span><span class="va">w</span><span class="op">*</span><span class="fl">0.5</span>, <span class="va">y</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"#4DAF4A"</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="op">}</span>,</span>
+<span>        <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span><span class="op">)</span> <span class="op">{</span></span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/grid/grid.points.html">grid.points</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, pch <span class="op">=</span> <span class="fl">25</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"blue"</span>, fill <span class="op">=</span> <span class="st">"blue"</span>, cex <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="op">}</span>,</span>
+<span>        <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span><span class="op">)</span> <span class="op">{</span></span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/grid/grid.rect.html">grid.rect</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, gp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/gpar.html">gpar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#FF000020"</span>, col <span class="op">=</span> <span class="st">"#FF000080"</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="op">}</span></span>
+<span>    <span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">1</span>, gap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">5</span>, <span class="st">"mm"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/">cowplot</a></span><span class="op">)</span></span>
+<span><span class="va">lgd</span><span class="op">@</span><span class="va">grob</span><span class="op">$</span><span class="va">vp</span><span class="op">$</span><span class="va">y</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"npc"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://wilkelab.org/cowplot/reference/plot_grid.html">plot_grid</a></span><span class="op">(</span><span class="va">p5</span>, <span class="va">p6</span>, <span class="va">lgd</span><span class="op">@</span><span class="va">grob</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scale <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="06-in-genomics_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;"></div>
+</div>
+<div id="with-more-organisms" class="section level3" number="7.4.6">
+<h3>
+<span class="header-section-number">7.4.6</span> with more organisms<a class="anchor" aria-label="anchor" href="#with-more-organisms"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+<div id="genome-version-is-important" class="section level3" number="7.4.7">
+<h3>
+<span class="header-section-number">7.4.7</span> Genome version is important<a class="anchor" aria-label="anchor" href="#genome-version-is-important"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+</div>
+<div id="other-thoughts" class="section level2" number="7.5">
+<h2>
+<span class="header-section-number">7.5</span> Other thoughts<a class="anchor" aria-label="anchor" href="#other-thoughts"><i class="fas fa-link"></i></a>
+</h2>
+<div id="large-sample-size" class="section level3" number="7.5.1">
+<h3>
+<span class="header-section-number">7.5.1</span> large sample size<a class="anchor" aria-label="anchor" href="#large-sample-size"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+<div id="compare-between-different-sets-of-genomic-regions" class="section level3" number="7.5.2">
+<h3>
+<span class="header-section-number">7.5.2</span> compare between different sets of genomic regions<a class="anchor" aria-label="anchor" href="#compare-between-different-sets-of-genomic-regions"><i class="fas fa-link"></i></a>
+</h3>
+<p>Distance to TSS</p>
+</div>
+<div id="use-other-statistics-and-permutate" class="section level3" number="7.5.3">
+<h3>
+<span class="header-section-number">7.5.3</span> Use other statistics and permutate<a class="anchor" aria-label="anchor" href="#use-other-statistics-and-permutate"><i class="fas fa-link"></i></a>
+</h3>
+<p>Once we have a region set They have a same problem where larger xxx tend to give more significant p-values.</p>
+</div>
+<div id="use-covariates" class="section level3" number="7.5.4">
+<h3>
+<span class="header-section-number">7.5.4</span> use covariates<a class="anchor" aria-label="anchor" href="#use-covariates"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+</div>
+<div id="summary-1" class="section level2" number="7.6">
+<h2>
+<span class="header-section-number">7.6</span> Summary<a class="anchor" aria-label="anchor" href="#summary-1"><i class="fas fa-link"></i></a>
+</h2>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="empty"></div>
+<div class="empty"></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <div id="book-on-this-page"></div>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-11-26.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

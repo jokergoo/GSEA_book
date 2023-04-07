@@ -18,9 +18,10 @@
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
-<meta name="description" content="11.1 measures of similarities">
-<meta property="og:description" content="11.1 measures of similarities">
-<meta name="twitter:description" content="11.1 measures of similarities">
+<link rel="stylesheet" href="style.css">
+<meta name="description" content="11.1 Overview Functional enrichment is becoming a standard analysis in xxx  11.2 measures of similarities  11.2.1 overlap-based Show which terms tend to show high similarity, parent-child, or...">
+<meta property="og:description" content="11.1 Overview Functional enrichment is becoming a standard analysis in xxx  11.2 measures of similarities  11.2.1 overlap-based Show which terms tend to show high similarity, parent-child, or...">
+<meta name="twitter:description" content="11.1 Overview Functional enrichment is becoming a standard analysis in xxx  11.2 measures of similarities  11.2.1 overlap-based Show which terms tend to show high similarity, parent-child, or...">
 </head>
 <body data-spy="scroll" data-target="#toc">
 
@@ -56,7 +57,7 @@
 </ul>
 
         <div class="book-extra">
-          
+          <p><a id="book-repo" href="https://github.com/jokergoo/GSEA_book">View book source <i class="fab fa-github"></i></a></p>
         </div>
       </nav>
 </div>
@@ -64,9 +65,82 @@
 <h1>
 <span class="header-section-number">11</span> Clustering and simplifying GSEA results<a class="anchor" aria-label="anchor" href="#clustering-and-simplifying-gsea-results"><i class="fas fa-link"></i></a>
 </h1>
-<div id="measures-of-similarities" class="section level2" number="11.1">
+<div id="overview-6" class="section level2" number="11.1">
 <h2>
-<span class="header-section-number">11.1</span> measures of similarities<a class="anchor" aria-label="anchor" href="#measures-of-similarities"><i class="fas fa-link"></i></a>
+<span class="header-section-number">11.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview-6"><i class="fas fa-link"></i></a>
+</h2>
+<p>Functional enrichment is becoming a standard analysis in xxx</p>
+</div>
+<div id="measures-of-similarities" class="section level2" number="11.2">
+<h2>
+<span class="header-section-number">11.2</span> measures of similarities<a class="anchor" aria-label="anchor" href="#measures-of-similarities"><i class="fas fa-link"></i></a>
+</h2>
+<div id="overlap-based" class="section level3" number="11.2.1">
+<h3>
+<span class="header-section-number">11.2.1</span> overlap-based<a class="anchor" aria-label="anchor" href="#overlap-based"><i class="fas fa-link"></i></a>
+</h3>
+<p>Show which terms tend to show high similarity, parent-child, or siblinds</p>
+</div>
+<div id="semantic-measures" class="section level3" number="11.2.2">
+<h3>
+<span class="header-section-number">11.2.2</span> semantic measures<a class="anchor" aria-label="anchor" href="#semantic-measures"><i class="fas fa-link"></i></a>
+</h3>
+<div id="ic" class="section level4" number="11.2.2.1">
+<h4>
+<span class="header-section-number">11.2.2.1</span> IC<a class="anchor" aria-label="anchor" href="#ic"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb175"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">go_id_1</span> <span class="op">=</span> <span class="st">"GO:0032888"</span></span>
+<span><span class="va">go_id_2</span> <span class="op">=</span> <span class="st">"GO:0051256"</span></span></code></pre></div>
+<div class="sourceCode" id="cb176"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">org.Hs.eg.db</span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/toTable.html">toTable</a></span><span class="op">(</span><span class="va">org.Hs.egGO2ALLEGS</span><span class="op">)</span></span>
+<span><span class="va">tb</span> <span class="op">=</span> <span class="va">tb</span><span class="op">[</span><span class="va">tb</span><span class="op">$</span><span class="va">Ontology</span> <span class="op">==</span> <span class="st">"BP"</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="va">go_gene_sets</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">tb</span><span class="op">$</span><span class="va">gene_id</span>, <span class="va">tb</span><span class="op">$</span><span class="va">go_id</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">GO.db</span><span class="op">)</span></span>
+<span><span class="va">offspring</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">GOBPOFFSPRING</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb177"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">n</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">go_id_1</span>, <span class="va">offspring</span><span class="op">[[</span><span class="va">go_id_1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">go_gene_sets</span><span class="op">[[</span><span class="va">id</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">n_bg</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">go_gene_sets</span>, <span class="va">length</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">n</span><span class="op">/</span><span class="va">n_bg</span><span class="op">)</span></span>
+<span><span class="co"># [1] 13.91922</span></span></code></pre></div>
+<div class="sourceCode" id="cb178"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">calc_IC</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">go_id</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">n</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">go_id</span>, <span class="va">offspring</span><span class="op">[[</span><span class="va">go_id</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">go_gene_sets</span><span class="op">[[</span><span class="va">id</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">}</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>    <span class="va">n_bg</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">go_gene_sets</span>, <span class="va">length</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">n</span><span class="op">/</span><span class="va">n_bg</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">IC_1</span> <span class="op">=</span> <span class="fu">calc_IC</span><span class="op">(</span><span class="va">go_id_1</span><span class="op">)</span></span>
+<span><span class="va">IC_2</span> <span class="op">=</span> <span class="fu">calc_IC</span><span class="op">(</span><span class="va">go_id_2</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb179"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">CA</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/sets.html">intersect</a></span><span class="op">(</span><span class="va">GOBPANCESTOR</span><span class="op">[[</span><span class="va">go_id_1</span><span class="op">]</span><span class="op">]</span>, <span class="va">GOBPANCESTOR</span><span class="op">[[</span><span class="va">go_id_2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">CA</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/sets.html">setdiff</a></span><span class="op">(</span><span class="va">CA</span>, <span class="st">"all"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb180"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">IC_MICA</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">CA</span>, <span class="va">calc_IC</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb181"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fl">2</span><span class="op">*</span><span class="va">IC_MICA</span><span class="op">/</span><span class="op">(</span><span class="va">IC_1</span> <span class="op">+</span> <span class="va">IC_2</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.8660491</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="enrichment-map-1" class="section level2" number="11.3">
+<h2>
+<span class="header-section-number">11.3</span> Enrichment map<a class="anchor" aria-label="anchor" href="#enrichment-map-1"><i class="fas fa-link"></i></a>
+</h2>
+</div>
+<div id="david" class="section level2" number="11.4">
+<h2>
+<span class="header-section-number">11.4</span> David<a class="anchor" aria-label="anchor" href="#david"><i class="fas fa-link"></i></a>
+</h2>
+</div>
+<div id="simplifyenrichment" class="section level2" number="11.5">
+<h2>
+<span class="header-section-number">11.5</span> simplifyEnrichment<a class="anchor" aria-label="anchor" href="#simplifyenrichment"><i class="fas fa-link"></i></a>
 </h2>
 
 </div>
@@ -78,12 +152,22 @@
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#clustering-and-simplifying-gsea-results"><span class="header-section-number">11</span> Clustering and simplifying GSEA results</a></li>
-<li><a class="nav-link" href="#measures-of-similarities"><span class="header-section-number">11.1</span> measures of similarities</a></li>
+<li><a class="nav-link" href="#overview-6"><span class="header-section-number">11.1</span> Overview</a></li>
+<li>
+<a class="nav-link" href="#measures-of-similarities"><span class="header-section-number">11.2</span> measures of similarities</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#overlap-based"><span class="header-section-number">11.2.1</span> overlap-based</a></li>
+<li><a class="nav-link" href="#semantic-measures"><span class="header-section-number">11.2.2</span> semantic measures</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#enrichment-map-1"><span class="header-section-number">11.3</span> Enrichment map</a></li>
+<li><a class="nav-link" href="#david"><span class="header-section-number">11.4</span> David</a></li>
+<li><a class="nav-link" href="#simplifyenrichment"><span class="header-section-number">11.5</span> simplifyEnrichment</a></li>
 </ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-          
+<li><a id="book-source" href="https://github.com/jokergoo/GSEA_book/blob/master/10-downstream.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/jokergoo/GSEA_book/edit/master/10-downstream.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
         </ul>
 </div>
     </nav>
@@ -95,7 +179,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-09-01.</p>
+    <p>"<strong>Gene Set Enrichment Analysis with R and Bioconductor</strong>" was written by Zuguang Gu. It was last built on 2022-11-26.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
